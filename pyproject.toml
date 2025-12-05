@@ -58,6 +58,11 @@ dev = [
     "black",
     "isort",
     "pytest",
+    "myst-parser",
+    "piccolo_theme",
+    "sphinx",
+    "sphinx-copybutton",
+    "sphinx-autodoc-typehints",
 ]
 
 [tool.setuptools.packages.find]
