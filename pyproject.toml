@@ -51,6 +51,11 @@ Repository = "https://github.com/CausalInference/pySEQTarget"
 "University of Bristol (ROR)" = "https://ror.org/0524sp257"
 "Harvard University (ROR)" = "https://ror.org/03vek6s52"
 
+[dependency-groups]
+dev = [
+    "pytest",
+]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["pySEQTarget*"]
