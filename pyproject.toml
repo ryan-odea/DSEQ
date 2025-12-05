@@ -53,6 +53,8 @@ Repository = "https://github.com/CausalInference/pySEQTarget"
 
 [dependency-groups]
 dev = [
+    "black",
+    "isort",
     "pytest",
 ]
 
