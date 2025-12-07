@@ -3,49 +3,49 @@ import datetime
 import markdown
 
 
-def _build_md(output: "SEQoutput", img_path: str = None) -> str:
+def _build_md(self, img_path: str = None) -> str:
     """
     Builds markdown content for SEQuential analysis results.
 
-    :param output: SEQoutput instance
+    :param self: SEQoutput instance
     :param img_path: Path to saved KM graph image (if any)
     :return: Markdown string
     """
 
     lines = []
 
-    lines.append(f"# SEQuential Analysis: {datetime.date.today()}: {output.method}")
+    lines.append(f"# SEQuential Analysis: {datetime.date.today()}: {self.method}")
     lines.append("")
 
-    if output.options.weighted:
+    if self.options.weighted:
         lines.append("## Weighting")
         lines.append("")
 
         lines.append("### Numerator Model")
         lines.append("")
         lines.append("```")
-        lines.append(str(output.numerator_models[0].summary()))
+        lines.append(str(self.numerator_models[0].summary()))
         lines.append("```")
         lines.append("")
 
         lines.append("### Denominator Model")
         lines.append("")
         lines.append("```")
-        lines.append(str(output.denominator_models[0].summary()))
+        lines.append(str(self.denominator_models[0].summary()))
         lines.append("```")
         lines.append("")
 
-        if output.options.compevent_colname is not None and output.compevent_models:
+        if self.options.compevent_colname is not None and self.compevent_models:
             lines.append("### Competing Event Model")
             lines.append("")
             lines.append("```")
-            lines.append(str(output.compevent_models[0].summary()))
+            lines.append(str(self.compevent_models[0].summary()))
             lines.append("```")
             lines.append("")
 
         lines.append("### Weighting Statistics")
         lines.append("")
-        lines.append(output.weight_statistics.to_pandas().to_markdown(index=False))
+        lines.append(self.weight_statistics.to_pandas().to_markdown(index=False))
         lines.append("")
 
     lines.append("## Outcome")
@@ -54,42 +54,42 @@ def _build_md(output: "SEQoutput", img_path: str = None) -> str:
     lines.append("### Outcome Model")
     lines.append("")
     lines.append("```")
-    lines.append(str(output.outcome_models[0].summary()))
+    lines.append(str(self.outcome_models[0].summary()))
     lines.append("```")
     lines.append("")
 
-    if output.options.hazard_estimate and output.hazard is not None:
+    if self.options.hazard_estimate and self.hazard is not None:
         lines.append("### Hazard")
         lines.append("")
-        lines.append(output.hazard.to_pandas().to_markdown(index=False))
+        lines.append(self.hazard.to_pandas().to_markdown(index=False))
         lines.append("")
 
-    if output.options.km_curves:
+    if self.options.km_curves:
         lines.append("### Survival")
         lines.append("")
 
-        if output.risk_difference is not None:
+        if self.risk_difference is not None:
             lines.append("#### Risk Differences")
             lines.append("")
-            lines.append(output.risk_difference.to_pandas().to_markdown(index=False))
+            lines.append(self.risk_difference.to_pandas().to_markdown(index=False))
             lines.append("")
 
-        if output.risk_ratio is not None:
+        if self.risk_ratio is not None:
             lines.append("#### Risk Ratios")
             lines.append("")
-            lines.append(output.risk_ratio.to_pandas().to_markdown(index=False))
+            lines.append(self.risk_ratio.to_pandas().to_markdown(index=False))
             lines.append("")
 
-        if output.km_graph is not None and img_path is not None:
+        if self.km_graph is not None and img_path is not None:
             lines.append("#### Survival Curves")
             lines.append("")
             lines.append(f"![Kaplan-Meier Survival Curves]({img_path})")
             lines.append("")
 
-    if output.diagnostic_tables:
+    if self.diagnostic_tables:
         lines.append("## Diagnostic Tables")
         lines.append("")
-        for name, table in output.diagnostic_tables.items():
+        for name, table in self.diagnostic_tables.items():
             lines.append(f"### {name.replace('_', ' ').title()}")
             lines.append("")
             lines.append(table.to_pandas().to_markdown(index=False))
