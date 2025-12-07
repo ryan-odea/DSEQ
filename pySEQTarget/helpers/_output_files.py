@@ -1,7 +1,5 @@
 import datetime
 
-import markdown
-
 
 def _build_md(self, img_path: str = None) -> str:
     """
@@ -107,6 +105,7 @@ def _build_pdf(md_content: str, filename: str, img_path: str = None) -> None:
     :param img_path: Absolute path to image file (if any)
     """
     try:
+        import markdown
         from weasyprint import CSS, HTML
     except ImportError:
         raise ImportError(
