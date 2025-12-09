@@ -53,7 +53,6 @@ model.fit() # Fit the model
 model.survival() # Create survival curves
 model.plot() # Create and show a plot of the survival curves
 model.collect() # Collection of important information
-
 ```
 
 ## Assumptions
@@ -61,4 +60,3 @@ There are several key assumptions in this package -
 1. User provided `time_col` begins at 0 per unique `id_col`, we also assume this column contains only integers and continues by 1 for every time step, e.g. (0, 1, 2, 3, 4, ...) is allowed and (0, 1, 2, 2.5, ...) or (0, 1, 4, 5) are not
     1. Provided `time_col` entries may be out of order at intake as a sort is enforced at expansion.
 2. `eligible_col` and elements of `excused_colnames` are once 1, only 1 (with respect to `time_col`) flag variables.
-
