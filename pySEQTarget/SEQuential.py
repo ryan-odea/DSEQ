@@ -17,16 +17,9 @@ from .initialization import (_cense_denominator, _cense_numerator,
 from .plot import _survival_plot
 from .SEQopts import SEQopts
 from .SEQoutput import SEQoutput
-from .weighting import (
-    _fit_denominator,
-    _fit_LTFU,
-    _fit_numerator,
-    _fit_visit,
-    _weight_bind,
-    _weight_predict,
-    _weight_setup,
-    _weight_stats,
-)
+from .weighting import (_fit_denominator, _fit_LTFU, _fit_numerator,
+                        _fit_visit, _weight_bind, _weight_predict,
+                        _weight_setup, _weight_stats)
 
 
 class SEQuential:
