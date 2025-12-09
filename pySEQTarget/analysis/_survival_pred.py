@@ -163,9 +163,9 @@ def _calculate_risk(self, data, idx=None, val=None):
                 .group_by("followup")
                 .agg(
                     [
-                        pl.col("risk").std().alias("SE"),
-                        pl.col("risk").quantile(lci).alias("LCI"),
-                        pl.col("risk").quantile(uci).alias("UCI"),
+                        pl.col("risk").std().cast(pl.Float64).alias("SE"),
+                        pl.col("risk").quantile(lci).cast(pl.Float64).alias("LCI"),
+                        pl.col("risk").quantile(uci).cast(pl.Float64).alias("UCI"),
                     ]
                 )
                 .join(TxDT.select(["followup", main_col]), on="followup")
@@ -198,9 +198,9 @@ def _calculate_risk(self, data, idx=None, val=None):
                         .group_by("followup")
                         .agg(
                             [
-                                pl.col("inc_val").std().alias("inc_SE"),
-                                pl.col("inc_val").quantile(lci).alias("inc_LCI"),
-                                pl.col("inc_val").quantile(uci).alias("inc_UCI"),
+                                pl.col("inc_val").std().cast(pl.Float64).alias("inc_SE"),
+                                pl.col("inc_val").quantile(lci).cast(pl.Float64).alias("inc_LCI"),
+                                pl.col("inc_val").quantile(uci).cast(pl.Float64).alias("inc_UCI"),
                             ]
                         )
                         .join(TxDT.select(["followup", "inc"]), on="followup")
