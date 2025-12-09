@@ -46,7 +46,7 @@ model = SEQuential(data,
                    time_varying_cols = ["N", "L", "P"],
                    fixed_cols = ["sex"],
                    method = "ITT",
-                   options = options)
+                   parameters = options)
 model.expand()  # Construct the nested structure
 model.bootstrap(bootstrap_nboot = 20) # Run 20 bootstrap samples
 model.fit() # Fit the model
