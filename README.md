@@ -31,8 +31,9 @@ From the user side, this amounts to creating a dataclass, `SEQopts`, and then fe
 ```python
 import polars as pl
 from pySEQTarget import SEQuential, SEQopts
+from pySEQTarget.data import load_data
 
-data = pl.from_pandas(SEQdata)
+data = load_data("SEQdata")
 options = SEQopts(km_curves = True)
 
 # Initiate the class
