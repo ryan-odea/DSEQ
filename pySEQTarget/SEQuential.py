@@ -7,19 +7,38 @@ from typing import List, Literal, Optional
 import numpy as np
 import polars as pl
 
-from .analysis import (_calculate_hazard, _calculate_survival, _outcome_fit,
-                       _pred_risk, _risk_estimates, _subgroup_fit)
-from .error import _datachecker, _param_checker
+from .analysis import (
+    _calculate_hazard,
+    _calculate_survival,
+    _outcome_fit,
+    _pred_risk,
+    _risk_estimates,
+    _subgroup_fit,
+    _clamp,
+)
+from .error import _data_checker, _param_checker
 from .expansion import _binder, _diagnostics, _dynamic, _random_selection
 from .helpers import _col_string, _format_time, bootstrap_loop
-from .initialization import (_cense_denominator, _cense_numerator,
-                             _denominator, _numerator, _outcome)
+from .initialization import (
+    _cense_denominator,
+    _cense_numerator,
+    _denominator,
+    _numerator,
+    _outcome,
+)
 from .plot import _survival_plot
 from .SEQopts import SEQopts
 from .SEQoutput import SEQoutput
-from .weighting import (_fit_denominator, _fit_LTFU, _fit_numerator,
-                        _fit_visit, _weight_bind, _weight_predict,
-                        _weight_setup, _weight_stats)
+from .weighting import (
+    _fit_denominator,
+    _fit_LTFU,
+    _fit_numerator,
+    _fit_visit,
+    _weight_bind,
+    _weight_predict,
+    _weight_setup,
+    _weight_stats,
+)
 
 
 class SEQuential:
@@ -101,7 +120,7 @@ class SEQuential:
                     self.cense_denominator = _cense_denominator(self)
 
         _param_checker(self)
-        _datachecker(self)
+        _data_checker(self)
 
     def expand(self) -> None:
         """
@@ -190,7 +209,6 @@ class SEQuential:
             )
             id_counts = Counter(sampled_IDs)
             self._boot_samples.append(id_counts)
-        return self
 
     @bootstrap_loop
     def fit(self) -> None:
@@ -266,7 +284,7 @@ class SEQuential:
 
         risk_data = _pred_risk(self)
         surv_data = _calculate_survival(self, risk_data)
-        self.km_data = pl.concat([risk_data, surv_data])
+        self.km_data = _clamp(pl.concat([risk_data, surv_data]))
         self.risk_estimates = _risk_estimates(self)
 
         end = time.perf_counter()
