@@ -22,13 +22,13 @@ def _risk_estimates(self):
                 continue
 
             risk_x = (
-                risk.filter(pl.col("tx_init") == tx_x)
+                risk.filter(pl.col(self.treatment_col) == tx_x)
                 .select(group_cols + ["pred"])
                 .rename({"pred": "risk_x"})
             )
 
             risk_y = (
-                risk.filter(pl.col("tx_init") == tx_y)
+                risk.filter(pl.col(self.treatment_col) == tx_y)
                 .select(group_cols + ["pred"])
                 .rename({"pred": "risk_y"})
             )
@@ -44,13 +44,13 @@ def _risk_estimates(self):
 
             if self.bootstrap_nboot > 0:
                 se_x = (
-                    risk.filter(pl.col("tx_init") == tx_x)
+                    risk.filter(pl.col(self.treatment_col) == tx_x)
                     .select(group_cols + ["SE"])
                     .rename({"SE": "se_x"})
                 )
 
                 se_y = (
-                    risk.filter(pl.col("tx_init") == tx_y)
+                    risk.filter(pl.col(self.treatment_col) == tx_y)
                     .select(group_cols + ["SE"])
                     .rename({"SE": "se_y"})
                 )
