@@ -15,7 +15,7 @@ def _fit_pair(
     for rhs, out in zip(formula_attr, output_attrs):
         formula = f"{outcome}~{rhs}"
         model = smf.glm(formula, WDT, family=sm.families.Binomial())
-        setattr(self, out, model.fit(disp=0))
+        setattr(self, out, model.fit(disp=0, method=self.weight_fit_method))
 
 
 def _fit_LTFU(self, WDT):
@@ -49,11 +49,18 @@ def _fit_numerator(self, WDT):
     if self.method == "ITT":
         return
     predictor = "switch" if self.excused else self.treatment_col
-    formula = f"{predictor}~{self.numerator}"
+    # Handle intercept-only formula when numerator is "1" or empty
+    if self.numerator in ("1", ""):
+        formula = f"{predictor}~1"
+    else:
+        formula = f"{predictor}~{self.numerator}"
     tx_bas = (
         f"{self.treatment_col}{self.indicator_baseline}" if self.excused else "tx_lag"
     )
     fits = []
+    # Use logit for binary 0/1 treatment with censoring method only
+    # treatment_level=[1,2] or dose-response always uses mnlogit
+    is_binary = sorted(self.treatment_level) == [0, 1] and self.method == "censoring"
     for i, level in enumerate(self.treatment_level):
         if self.excused and self.excused_colnames[i] is not None:
             DT_subset = WDT[WDT[self.excused_colnames[i]] == 0]
@@ -63,11 +70,16 @@ def _fit_numerator(self, WDT):
             DT_subset = DT_subset[DT_subset[tx_bas] == level]
         if self.weight_eligible_colnames[i] is not None:
             DT_subset = DT_subset[DT_subset[self.weight_eligible_colnames[i]] == 1]
-        model = smf.mnlogit(formula, DT_subset)
-        model_fit = model.fit(disp=0)
+        # Use logit for binary 0/1 censoring, mnlogit otherwise
+        if is_binary:
+            model = smf.logit(formula, DT_subset)
+        else:
+            model = smf.mnlogit(formula, DT_subset)
+        model_fit = model.fit(disp=0, method=self.weight_fit_method)
         fits.append(model_fit)
 
     self.numerator_model = fits
+    self._is_binary_treatment = is_binary
 
 
 def _fit_denominator(self, WDT):
@@ -78,8 +90,15 @@ def _fit_denominator(self, WDT):
         if self.excused and not self.weight_preexpansion
         else self.treatment_col
     )
-    formula = f"{predictor}~{self.denominator}"
+    # Handle intercept-only formula when denominator is "1" or empty
+    if self.denominator in ("1", ""):
+        formula = f"{predictor}~1"
+    else:
+        formula = f"{predictor}~{self.denominator}"
     fits = []
+    # Use logit for binary 0/1 treatment with censoring method only
+    # treatment_level=[1,2] or dose-response always uses mnlogit
+    is_binary = sorted(self.treatment_level) == [0, 1] and self.method == "censoring"
     for i, level in enumerate(self.treatment_level):
         if self.excused and self.excused_colnames[i] is not None:
             DT_subset = WDT[WDT[self.excused_colnames[i]] == 0]
@@ -92,8 +111,13 @@ def _fit_denominator(self, WDT):
         if self.weight_eligible_colnames[i] is not None:
             DT_subset = DT_subset[DT_subset[self.weight_eligible_colnames[i]] == 1]
 
-        model = smf.mnlogit(formula, DT_subset)
-        model_fit = model.fit(disp=0)
+        # Use logit for binary 0/1 censoring, mnlogit otherwise
+        if is_binary:
+            model = smf.logit(formula, DT_subset)
+        else:
+            model = smf.mnlogit(formula, DT_subset)
+        model_fit = model.fit(disp=0, method=self.weight_fit_method)
         fits.append(model_fit)
 
     self.denominator_model = fits
+    self._is_binary_treatment = is_binary

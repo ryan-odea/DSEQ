@@ -1,5 +1,7 @@
 import polars as pl
 
+from ..helpers._predict_model import _safe_predict
+
 
 def _get_outcome_predictions(self, TxDT, idx=None):
     data = TxDT.to_pandas()
@@ -9,9 +11,12 @@ def _get_outcome_predictions(self, TxDT, idx=None):
 
     for boot_model in self.outcome_model:
         model_dict = boot_model[idx] if idx is not None else boot_model
-        predictions["outcome"].append(model_dict["outcome"].predict(data))
+        outcome_model = self._offloader.load_model(model_dict["outcome"])
+        predictions["outcome"].append(_safe_predict(outcome_model, data.copy()))
+
         if self.compevent_colname is not None:
-            predictions["compevent"].append(model_dict["compevent"].predict(data))
+            compevent_model = self._offloader.load_model(model_dict["compevent"])
+            predictions["compevent"].append(_safe_predict(compevent_model, data.copy()))
 
     return predictions
 

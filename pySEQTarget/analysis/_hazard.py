@@ -4,6 +4,8 @@ import numpy as np
 import polars as pl
 from lifelines import CoxPHFitter
 
+from ..helpers._predict_model import _safe_predict
+
 
 def _calculate_hazard(self):
     if self.subgroup_colname is None:
@@ -93,8 +95,10 @@ def _hazard_handler(self, data, idx, boot_idx, rng):
     else:
         model_dict = self.outcome_model[boot_idx]
 
-    outcome_model = model_dict["outcome"]
-    ce_model = model_dict.get("compevent", None) if self.compevent_colname else None
+    outcome_model = self._offloader.load_model(model_dict["outcome"])
+    ce_model = None
+    if self.compevent_colname and "compevent" in model_dict:
+        ce_model = self._offloader.load_model(model_dict["compevent"])
 
     all_treatments = []
     for val in self.treatment_level:
@@ -103,13 +107,14 @@ def _hazard_handler(self, data, idx, boot_idx, rng):
         )
 
         tmp_pd = tmp.to_pandas()
-        outcome_prob = outcome_model.predict(tmp_pd)
+        outcome_prob = _safe_predict(outcome_model, tmp_pd)
         outcome_sim = rng.binomial(1, outcome_prob)
 
         tmp = tmp.with_columns([pl.Series("outcome", outcome_sim)])
 
         if ce_model is not None:
-            ce_prob = ce_model.predict(tmp_pd)
+            ce_tmp_pd = tmp.to_pandas()
+            ce_prob = _safe_predict(ce_model, ce_tmp_pd)
             ce_sim = rng.binomial(1, ce_prob)
             tmp = tmp.with_columns([pl.Series("ce", ce_sim)])
 
