@@ -11,8 +11,11 @@ def _weight_predict(self, WDT):
 
     # Check if binary 0/1 treatment with censoring (set during fitting)
     # Must match the logic in _weight_fit.py
-    is_binary = getattr(self, '_is_binary_treatment', 
-                        sorted(self.treatment_level) == [0, 1] and self.method == "censoring")
+    is_binary = getattr(
+        self,
+        "_is_binary_treatment",
+        sorted(self.treatment_level) == [0, 1] and self.method == "censoring",
+    )
 
     if self.method == "ITT":
         WDT = WDT.with_columns(
@@ -37,7 +40,7 @@ def _weight_predict(self, WDT):
                     if lag_mask.sum() > 0:
                         subset = WDT.filter(pl.Series(lag_mask))
                         p = _predict_model(self, denom_model, subset)
-                        
+
                         # Handle binary vs multinomial prediction output
                         if is_binary:
                             # logit returns P(Y=1) directly as 1D array
@@ -49,11 +52,13 @@ def _weight_predict(self, WDT):
                             if p.ndim == 1:
                                 p = p.reshape(-1, 1)
                             p_class = p[:, i]
-                        
+
                         switched_treatment = (
                             subset[self.treatment_col] != subset["tx_lag"]
                         ).to_numpy()
-                        pred_denom[lag_mask] = np.where(switched_treatment, 1.0 - p_class, p_class)
+                        pred_denom[lag_mask] = np.where(
+                            switched_treatment, 1.0 - p_class, p_class
+                        )
                 else:
                     pred_denom = np.ones(WDT.height)
 
@@ -62,7 +67,7 @@ def _weight_predict(self, WDT):
                     if lag_mask.sum() > 0:
                         subset = WDT.filter(pl.Series(lag_mask))
                         p = _predict_model(self, num_model, subset)
-                        
+
                         # Handle binary vs multinomial prediction output
                         if is_binary:
                             # logit returns P(Y=1) directly as 1D array
@@ -72,11 +77,13 @@ def _weight_predict(self, WDT):
                             if p.ndim == 1:
                                 p = p.reshape(-1, 1)
                             p_class = p[:, i]
-                        
+
                         switched_treatment = (
                             subset[self.treatment_col] != subset["tx_lag"]
                         ).to_numpy()
-                        pred_num[lag_mask] = np.where(switched_treatment, 1.0 - p_class, p_class)
+                        pred_num[lag_mask] = np.where(
+                            switched_treatment, 1.0 - p_class, p_class
+                        )
                 else:
                     pred_num = np.ones(WDT.height)
 
