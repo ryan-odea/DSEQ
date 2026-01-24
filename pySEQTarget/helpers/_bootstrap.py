@@ -35,7 +35,13 @@ def _prepare_boot_data(self, data, boot_id):
 
 
 def _bootstrap_worker(obj, method_name, original_DT, i, seed, args, kwargs):
-    obj = copy.deepcopy(obj)
+    # Shallow copy the object and only deep copy mutable state that changes per-bootstrap
+    obj = copy.copy(obj)
+    # Deep copy only the mutable attributes that get modified during fitting
+    obj.outcome_model = []
+    obj.numerator_model = copy.copy(obj.numerator_model) if hasattr(obj, 'numerator_model') and obj.numerator_model else []
+    obj.denominator_model = copy.copy(obj.denominator_model) if hasattr(obj, 'denominator_model') and obj.denominator_model else []
+    
     obj._rng = (
         np.random.RandomState(seed + i) if seed is not None else np.random.RandomState()
     )
