@@ -48,11 +48,7 @@ def _calculate_risk(self, data, idx=None, val=None):
 
     SDT = (
         data.with_columns(
-            [
-                (
-                    pl.col(self.id_col).cast(pl.Utf8) + pl.col("trial").cast(pl.Utf8)
-                ).alias("TID")
-            ]
+            [pl.concat_str([pl.col(self.id_col), pl.col("trial")]).alias("TID")]
         )
         .group_by("TID")
         .first()
