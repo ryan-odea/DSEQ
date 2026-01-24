@@ -4,6 +4,23 @@ import polars as pl
 from ..helpers import _predict_model
 
 
+def _extract_class_probability(p, level_idx, is_binary):
+    """
+    Extract the probability for a specific class from model predictions.
+    Handles both binary (logit) and multinomial (mnlogit) output formats.
+    """
+    if is_binary:
+        # logit returns P(Y=1) directly as 1D array
+        # For level 0: want P(stay at 0) = 1 - P(Y=1)
+        # For level 1: want P(switch to 1) = P(Y=1)
+        return p if level_idx == 1 else (1 - p)
+    else:
+        # mnlogit returns [P(Y=0), P(Y=1), ...] as 2D array
+        if p.ndim == 1:
+            p = p.reshape(-1, 1)
+        return p[:, level_idx]
+
+
 def _weight_predict(self, WDT):
     grouping = [self.id_col]
     grouping += ["trial"] if not self.weight_preexpansion else []
