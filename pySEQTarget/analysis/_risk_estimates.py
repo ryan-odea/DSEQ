@@ -2,6 +2,69 @@ import polars as pl
 from scipy import stats
 
 
+def _compute_rd_rr(comp, has_bootstrap, z=None, group_cols=None):
+    """
+    Compute Risk Difference and Risk Ratio from a comparison dataframe.
+    Consolidates the repeated calculation logic.
+    """
+    if group_cols is None:
+        group_cols = []
+
+    if has_bootstrap:
+        rd_se = (pl.col("se_x").pow(2) + pl.col("se_y").pow(2)).sqrt()
+        rd_comp = comp.with_columns(
+            [
+                (pl.col("risk_x") - pl.col("risk_y")).alias("Risk Difference"),
+                (pl.col("risk_x") - pl.col("risk_y") - z * rd_se).alias("RD 95% LCI"),
+                (pl.col("risk_x") - pl.col("risk_y") + z * rd_se).alias("RD 95% UCI"),
+            ]
+        )
+        rd_comp = rd_comp.drop(["risk_x", "risk_y", "se_x", "se_y"])
+        col_order = group_cols + [
+            "A_x",
+            "A_y",
+            "Risk Difference",
+            "RD 95% LCI",
+            "RD 95% UCI",
+        ]
+        rd_comp = rd_comp.select([c for c in col_order if c in rd_comp.columns])
+
+        rr_log_se = (
+            (pl.col("se_x") / pl.col("risk_x")).pow(2)
+            + (pl.col("se_y") / pl.col("risk_y")).pow(2)
+        ).sqrt()
+        rr_comp = comp.with_columns(
+            [
+                (pl.col("risk_x") / pl.col("risk_y")).alias("Risk Ratio"),
+                (
+                    (pl.col("risk_x") / pl.col("risk_y")) * (-z * rr_log_se).exp()
+                ).alias("RR 95% LCI"),
+                (
+                    (pl.col("risk_x") / pl.col("risk_y")) * (z * rr_log_se).exp()
+                ).alias("RR 95% UCI"),
+            ]
+        )
+        rr_comp = rr_comp.drop(["risk_x", "risk_y", "se_x", "se_y"])
+        col_order = group_cols + ["A_x", "A_y", "Risk Ratio", "RR 95% LCI", "RR 95% UCI"]
+        rr_comp = rr_comp.select([c for c in col_order if c in rr_comp.columns])
+    else:
+        rd_comp = comp.with_columns(
+            (pl.col("risk_x") - pl.col("risk_y")).alias("Risk Difference")
+        )
+        rd_comp = rd_comp.drop(["risk_x", "risk_y"])
+        col_order = group_cols + ["A_x", "A_y", "Risk Difference"]
+        rd_comp = rd_comp.select([c for c in col_order if c in rd_comp.columns])
+
+        rr_comp = comp.with_columns(
+            (pl.col("risk_x") / pl.col("risk_y")).alias("Risk Ratio")
+        )
+        rr_comp = rr_comp.drop(["risk_x", "risk_y"])
+        col_order = group_cols + ["A_x", "A_y", "Risk Ratio"]
+        rr_comp = rr_comp.select([c for c in col_order if c in rr_comp.columns])
+
+    return rd_comp, rr_comp
+
+
 def _risk_estimates(self):
     last_followup = self.km_data["followup"].max()
     risk = self.km_data.filter(
