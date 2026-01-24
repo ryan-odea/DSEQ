@@ -110,13 +110,19 @@ def bootstrap_loop(method):
                 self._rng = original_rng
                 self.DT = self._offloader.load_dataframe(original_DT_ref)
             else:
-                original_DT_ref = self._offloader.save_dataframe(original_DT, "_DT")
-                del original_DT
+                # Keep original data in memory if offloading is disabled to avoid unnecessary I/O
+                if self._offloader.enabled:
+                    original_DT_ref = self._offloader.save_dataframe(original_DT, "_DT")
+                    del original_DT
+                else:
+                    original_DT_ref = original_DT
+                
                 for i in tqdm(range(nboot), desc="Bootstrapping..."):
                     self._current_boot_idx = i + 1
                     tmp = self._offloader.load_dataframe(original_DT_ref)
                     self.DT = _prepare_boot_data(self, tmp, i)
-                    del tmp
+                    if self._offloader.enabled:
+                        del tmp
                     self.bootstrap_nboot = 0
                     boot_fit = method(self, *args, **kwargs)
                     results.append(boot_fit)
