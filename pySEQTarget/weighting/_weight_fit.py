@@ -2,6 +2,32 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
 
+def _get_subset_for_level(self, WDT, level_idx, level, tx_lag_col, exclude_followup_zero=False):
+    """
+    Helper to create the subset of data for a given treatment level.
+    Consolidates the repeated filtering logic from _fit_numerator and _fit_denominator.
+    """
+    DT_subset = WDT
+    
+    # Filter by excused column if applicable
+    if self.excused and self.excused_colnames[level_idx] is not None:
+        DT_subset = DT_subset[DT_subset[self.excused_colnames[level_idx]] == 0]
+    
+    # Filter by treatment lag condition
+    if self.weight_lag_condition:
+        DT_subset = DT_subset[DT_subset[tx_lag_col] == level]
+    
+    # Exclude followup == 0 for denominator (not pre-expansion)
+    if exclude_followup_zero:
+        DT_subset = DT_subset[DT_subset["followup"] != 0]
+    
+    # Filter by eligibility column if applicable
+    if self.weight_eligible_colnames[level_idx] is not None:
+        DT_subset = DT_subset[DT_subset[self.weight_eligible_colnames[level_idx]] == 1]
+    
+    return DT_subset
+
+
 def _fit_pair(
     self, WDT, outcome_attr, formula_attr, output_attrs, eligible_colname_attr=None
 ):
@@ -54,7 +80,7 @@ def _fit_numerator(self, WDT):
         formula = f"{predictor}~1"
     else:
         formula = f"{predictor}~{self.numerator}"
-    tx_bas = (
+    tx_lag_col = (
         f"{self.treatment_col}{self.indicator_baseline}" if self.excused else "tx_lag"
     )
     fits = []
@@ -62,14 +88,7 @@ def _fit_numerator(self, WDT):
     # treatment_level=[1,2] or dose-response always uses mnlogit
     is_binary = sorted(self.treatment_level) == [0, 1] and self.method == "censoring"
     for i, level in enumerate(self.treatment_level):
-        if self.excused and self.excused_colnames[i] is not None:
-            DT_subset = WDT[WDT[self.excused_colnames[i]] == 0]
-        else:
-            DT_subset = WDT
-        if self.weight_lag_condition:
-            DT_subset = DT_subset[DT_subset[tx_bas] == level]
-        if self.weight_eligible_colnames[i] is not None:
-            DT_subset = DT_subset[DT_subset[self.weight_eligible_colnames[i]] == 1]
+        DT_subset = _get_subset_for_level(self, WDT, i, level, tx_lag_col)
         # Use logit for binary 0/1 censoring, mnlogit otherwise
         if is_binary:
             model = smf.logit(formula, DT_subset)
@@ -99,18 +118,11 @@ def _fit_denominator(self, WDT):
     # Use logit for binary 0/1 treatment with censoring method only
     # treatment_level=[1,2] or dose-response always uses mnlogit
     is_binary = sorted(self.treatment_level) == [0, 1] and self.method == "censoring"
+    exclude_followup_zero = not self.weight_preexpansion
     for i, level in enumerate(self.treatment_level):
-        if self.excused and self.excused_colnames[i] is not None:
-            DT_subset = WDT[WDT[self.excused_colnames[i]] == 0]
-        else:
-            DT_subset = WDT
-        if self.weight_lag_condition:
-            DT_subset = DT_subset[DT_subset["tx_lag"] == level]
-        if not self.weight_preexpansion:
-            DT_subset = DT_subset[DT_subset["followup"] != 0]
-        if self.weight_eligible_colnames[i] is not None:
-            DT_subset = DT_subset[DT_subset[self.weight_eligible_colnames[i]] == 1]
-
+        DT_subset = _get_subset_for_level(
+            self, WDT, i, level, "tx_lag", exclude_followup_zero=exclude_followup_zero
+        )
         # Use logit for binary 0/1 censoring, mnlogit otherwise
         if is_binary:
             model = smf.logit(formula, DT_subset)

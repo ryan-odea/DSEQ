@@ -13,17 +13,10 @@ def _mapper(data, id_col, time_col, min_followup=-math.inf, max_followup=math.in
         .with_columns([pl.col(id_col).cum_count().over(id_col).sub(1).alias("trial")])
         .with_columns(
             [
-                pl.struct(
-                    [
-                        pl.col(time_col),
-                        pl.col(time_col).max().over(id_col).alias("max_time"),
-                    ]
-                )
-                .map_elements(
-                    lambda x: list(range(x[time_col], x["max_time"] + 1)),
-                    return_dtype=pl.List(pl.Int64),
-                )
-                .alias("period")
+                pl.int_ranges(
+                    pl.col(time_col),
+                    pl.col(time_col).max().over(id_col) + 1,
+                ).alias("period")
             ]
         )
         .explode("period")

@@ -46,24 +46,20 @@ def _calculate_risk(self, data, idx=None, val=None):
     lci = a / 2
     uci = 1 - lci
 
+    # Pre-compute the followup range once (starts at 1, not 0)
+    followup_range = list(range(1, self.followup_max + 1))
+    
     SDT = (
         data.with_columns(
-            [
-                (
-                    pl.col(self.id_col).cast(pl.Utf8) + pl.col("trial").cast(pl.Utf8)
-                ).alias("TID")
-            ]
+            [pl.concat_str([pl.col(self.id_col), pl.col("trial")]).alias("TID")]
         )
         .group_by("TID")
         .first()
         .drop(["followup", f"followup{self.indicator_squared}"])
-        .with_columns([pl.lit(list(range(self.followup_max))).alias("followup")])
+        .with_columns([pl.lit(followup_range).alias("followup")])
         .explode("followup")
         .with_columns(
-            [
-                (pl.col("followup") + 1).alias("followup"),
-                (pl.col("followup") ** 2).alias(f"followup{self.indicator_squared}"),
-            ]
+            [(pl.col("followup") ** 2).alias(f"followup{self.indicator_squared}")]
         )
     ).sort([self.id_col, "trial", "followup"])
 

@@ -35,7 +35,13 @@ def _prepare_boot_data(self, data, boot_id):
 
 
 def _bootstrap_worker(obj, method_name, original_DT, i, seed, args, kwargs):
-    obj = copy.deepcopy(obj)
+    # Shallow copy the object and only deep copy mutable state that changes per-bootstrap
+    obj = copy.copy(obj)
+    # Deep copy only the mutable attributes that get modified during fitting
+    obj.outcome_model = []
+    obj.numerator_model = copy.copy(obj.numerator_model) if hasattr(obj, 'numerator_model') and obj.numerator_model else []
+    obj.denominator_model = copy.copy(obj.denominator_model) if hasattr(obj, 'denominator_model') and obj.denominator_model else []
+    
     obj._rng = (
         np.random.RandomState(seed + i) if seed is not None else np.random.RandomState()
     )
@@ -104,13 +110,19 @@ def bootstrap_loop(method):
                 self._rng = original_rng
                 self.DT = self._offloader.load_dataframe(original_DT_ref)
             else:
-                original_DT_ref = self._offloader.save_dataframe(original_DT, "_DT")
-                del original_DT
+                # Keep original data in memory if offloading is disabled to avoid unnecessary I/O
+                if self._offloader.enabled:
+                    original_DT_ref = self._offloader.save_dataframe(original_DT, "_DT")
+                    del original_DT
+                else:
+                    original_DT_ref = original_DT
+                
                 for i in tqdm(range(nboot), desc="Bootstrapping..."):
                     self._current_boot_idx = i + 1
                     tmp = self._offloader.load_dataframe(original_DT_ref)
                     self.DT = _prepare_boot_data(self, tmp, i)
-                    del tmp
+                    if self._offloader.enabled:
+                        del tmp
                     self.bootstrap_nboot = 0
                     boot_fit = method(self, *args, **kwargs)
                     results.append(boot_fit)
