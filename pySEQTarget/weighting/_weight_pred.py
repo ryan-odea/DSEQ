@@ -47,11 +47,11 @@ def _weight_predict(self, WDT):
             # Pre-allocate arrays once for all treatment levels
             pred_num = np.ones(WDT.height)
             pred_denom = np.ones(WDT.height)
-            
+
             # Pre-compute treatment switch mask once
             switched_treatment = (WDT[self.treatment_col] != WDT["tx_lag"]).to_numpy()
             tx_lag_array = WDT["tx_lag"].to_numpy()
-            
+
             for i, level in enumerate(self.treatment_level):
                 lag_mask = tx_lag_array == level
 

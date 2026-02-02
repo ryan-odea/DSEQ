@@ -121,8 +121,7 @@ def _build_pdf(md_content: str, filename: str, img_path: str = None) -> None:
             f'src="{img_name}"', f'src="file://{img_path}"'
         )
 
-    css = CSS(
-        string="""
+    css = CSS(string="""
         body {
             font-family: Arial, sans-serif;
             font-size: 11pt;
@@ -153,8 +152,7 @@ def _build_pdf(md_content: str, filename: str, img_path: str = None) -> None:
         }
         code { font-family: 'Courier New', monospace; }
         img { max-width: 100%; height: auto; }
-    """
-    )
+    """)
 
     full_html = f"""
     <!DOCTYPE html>

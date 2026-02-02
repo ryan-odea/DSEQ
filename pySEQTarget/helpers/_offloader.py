@@ -24,7 +24,7 @@ class Offloader:
         """Prepare state for pickling - exclude the unpicklable cache."""
         state = self.__dict__.copy()
         # Remove the cache wrapper which can't be pickled
-        del state['_cached_load']
+        del state["_cached_load"]
         return state
 
     def __setstate__(self, state):

@@ -39,9 +39,17 @@ def _bootstrap_worker(obj, method_name, original_DT, i, seed, args, kwargs):
     obj = copy.copy(obj)
     # Deep copy only the mutable attributes that get modified during fitting
     obj.outcome_model = []
-    obj.numerator_model = copy.copy(obj.numerator_model) if hasattr(obj, 'numerator_model') and obj.numerator_model else []
-    obj.denominator_model = copy.copy(obj.denominator_model) if hasattr(obj, 'denominator_model') and obj.denominator_model else []
-    
+    obj.numerator_model = (
+        copy.copy(obj.numerator_model)
+        if hasattr(obj, "numerator_model") and obj.numerator_model
+        else []
+    )
+    obj.denominator_model = (
+        copy.copy(obj.denominator_model)
+        if hasattr(obj, "denominator_model") and obj.denominator_model
+        else []
+    )
+
     obj._rng = (
         np.random.RandomState(seed + i) if seed is not None else np.random.RandomState()
     )
@@ -116,7 +124,7 @@ def bootstrap_loop(method):
                     del original_DT
                 else:
                     original_DT_ref = original_DT
-                
+
                 for i in tqdm(range(nboot), desc="Bootstrapping..."):
                     self._current_boot_idx = i + 1
                     tmp = self._offloader.load_dataframe(original_DT_ref)

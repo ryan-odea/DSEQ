@@ -36,16 +36,22 @@ def _compute_rd_rr(comp, has_bootstrap, z=None, group_cols=None):
         rr_comp = comp.with_columns(
             [
                 (pl.col("risk_x") / pl.col("risk_y")).alias("Risk Ratio"),
-                (
-                    (pl.col("risk_x") / pl.col("risk_y")) * (-z * rr_log_se).exp()
-                ).alias("RR 95% LCI"),
-                (
-                    (pl.col("risk_x") / pl.col("risk_y")) * (z * rr_log_se).exp()
-                ).alias("RR 95% UCI"),
+                ((pl.col("risk_x") / pl.col("risk_y")) * (-z * rr_log_se).exp()).alias(
+                    "RR 95% LCI"
+                ),
+                ((pl.col("risk_x") / pl.col("risk_y")) * (z * rr_log_se).exp()).alias(
+                    "RR 95% UCI"
+                ),
             ]
         )
         rr_comp = rr_comp.drop(["risk_x", "risk_y", "se_x", "se_y"])
-        col_order = group_cols + ["A_x", "A_y", "Risk Ratio", "RR 95% LCI", "RR 95% UCI"]
+        col_order = group_cols + [
+            "A_x",
+            "A_y",
+            "Risk Ratio",
+            "RR 95% LCI",
+            "RR 95% UCI",
+        ]
         rr_comp = rr_comp.select([c for c in col_order if c in rr_comp.columns])
     else:
         rd_comp = comp.with_columns(

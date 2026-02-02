@@ -2,29 +2,31 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
 
-def _get_subset_for_level(self, WDT, level_idx, level, tx_lag_col, exclude_followup_zero=False):
+def _get_subset_for_level(
+    self, WDT, level_idx, level, tx_lag_col, exclude_followup_zero=False
+):
     """
     Helper to create the subset of data for a given treatment level.
     Consolidates the repeated filtering logic from _fit_numerator and _fit_denominator.
     """
     DT_subset = WDT
-    
+
     # Filter by excused column if applicable
     if self.excused and self.excused_colnames[level_idx] is not None:
         DT_subset = DT_subset[DT_subset[self.excused_colnames[level_idx]] == 0]
-    
+
     # Filter by treatment lag condition
     if self.weight_lag_condition:
         DT_subset = DT_subset[DT_subset[tx_lag_col] == level]
-    
+
     # Exclude followup == 0 for denominator (not pre-expansion)
     if exclude_followup_zero:
         DT_subset = DT_subset[DT_subset["followup"] != 0]
-    
+
     # Filter by eligibility column if applicable
     if self.weight_eligible_colnames[level_idx] is not None:
         DT_subset = DT_subset[DT_subset[self.weight_eligible_colnames[level_idx]] == 1]
-    
+
     return DT_subset
 
 

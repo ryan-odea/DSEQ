@@ -48,7 +48,7 @@ def _calculate_risk(self, data, idx=None, val=None):
 
     # Pre-compute the followup range once (starts at 1, not 0)
     followup_range = list(range(1, self.followup_max + 1))
-    
+
     SDT = (
         data.with_columns(
             [pl.concat_str([pl.col(self.id_col), pl.col("trial")]).alias("TID")]
