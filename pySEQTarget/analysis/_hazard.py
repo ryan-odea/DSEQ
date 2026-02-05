@@ -24,13 +24,13 @@ def _calculate_hazard(self):
 
 
 def _calculate_hazard_single(self, data, idx=None, val=None):
-    full_hr = _hazard_handler(self, data, idx, 0, self._rng)
+    full_log_hr = _hazard_handler(self, data, idx, 0, self._rng)
 
-    if full_hr is None or np.isnan(full_hr):
+    if full_log_hr is None or np.isnan(full_log_hr):
         return _create_hazard_output(None, None, None, val, self)
 
     if self.bootstrap_nboot > 0:
-        boot_hrs = []
+        boot_log_hrs = []
 
         for boot_idx in range(len(self._boot_samples)):
             id_counts = self._boot_samples[boot_idx]
@@ -43,27 +43,27 @@ def _calculate_hazard_single(self, data, idx=None, val=None):
 
             boot_data = pl.concat(boot_data_list)
 
-            boot_hr = _hazard_handler(self, boot_data, idx, boot_idx + 1, self._rng)
-            if boot_hr is not None and not np.isnan(boot_hr):
-                boot_hrs.append(boot_hr)
+            boot_log_hr = _hazard_handler(self, boot_data, idx, boot_idx + 1, self._rng)
+            if boot_log_hr is not None and not np.isnan(boot_log_hr):
+                boot_log_hrs.append(boot_log_hr)
 
-        if len(boot_hrs) == 0:
-            return _create_hazard_output(full_hr, None, None, val, self)
+        if len(boot_log_hrs) == 0:
+            return _create_hazard_output(np.exp(full_log_hr), None, None, val, self)
 
         if self.bootstrap_CI_method == "se":
             from scipy.stats import norm
 
             z = norm.ppf(1 - (1 - self.bootstrap_CI) / 2)
-            se = np.std(boot_hrs)
-            lci = full_hr - z * se
-            uci = full_hr + z * se
+            se = np.std(boot_log_hrs)
+            lci = np.exp(full_log_hr - z * se)
+            uci = np.exp(full_log_hr + z * se)
         else:
-            lci = np.quantile(boot_hrs, (1 - self.bootstrap_CI) / 2)
-            uci = np.quantile(boot_hrs, 1 - (1 - self.bootstrap_CI) / 2)
+            lci = np.exp(np.quantile(boot_log_hrs, (1 - self.bootstrap_CI) / 2))
+            uci = np.exp(np.quantile(boot_log_hrs, 1 - (1 - self.bootstrap_CI) / 2))
     else:
         lci, uci = None, None
 
-    return _create_hazard_output(full_hr, lci, uci, val, self)
+    return _create_hazard_output(np.exp(full_log_hr), lci, uci, val, self)
 
 
 def _hazard_handler(self, data, idx, boot_idx, rng):
@@ -191,8 +191,8 @@ def _hazard_handler(self, data, idx, boot_idx, rng):
                 formula=f"`{self.treatment_col}{self.indicator_baseline}`",
             )
 
-        hr = np.exp(cph.params_.values[0])
-        return hr
+        log_hr = cph.params_.values[0]
+        return log_hr
     except Exception as e:
         print(f"Cox model fitting failed: {e}")
         return None
