@@ -202,13 +202,13 @@ def _create_hazard_output(hr, lci, uci, val, self):
     if lci is not None and uci is not None:
         output = pl.DataFrame(
             {
-                "Hazard": [hr if hr is not None else float("nan")],
+                "Hazard ratio": [hr if hr is not None else float("nan")],
                 "LCI": [lci],
                 "UCI": [uci],
             }
         )
     else:
-        output = pl.DataFrame({"Hazard": [hr if hr is not None else float("nan")]})
+        output = pl.DataFrame({"Hazard ratio": [hr if hr is not None else float("nan")]})
 
     if val is not None:
         output = output.with_columns(pl.lit(val).alias(self.subgroup_colname))
