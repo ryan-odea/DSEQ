@@ -19,7 +19,8 @@ class SEQopts:
     :type bootstrap_CI_method: str
     :param cense_colname: Column name for censoring effect (LTFU, etc.)
     :type cense_colname: str
-    :param cense_denominator: Override to specify denominator patsy formula for censoring models; "1" or "" indicate intercept only model
+    :param cense_denominator: Override to specify denominator patsy formula for
+        censoring models; "1" or "" indicate intercept only model
     :type cense_denominator: Optional[str] or None
     :param cense_numerator: Override to specify numerator patsy formula for censoring models
     :type cense_numerator: Optional[str] or None
@@ -55,7 +56,8 @@ class SEQopts:
     :type km_curves: bool
     :param ncores: Number of cores to use if running in parallel
     :type ncores: int
-    :param numerator: Override to specify the outcome patsy formula for numerator models; "1" or "" indicate intercept only model
+    :param numerator: Override to specify the outcome patsy formula for
+        numerator models; "1" or "" indicate intercept only model
     :type numerator: str
     :param offload: Boolean to offload intermediate model data to disk
     :type offload: bool
@@ -87,7 +89,8 @@ class SEQopts:
     :type trial_include: bool
     :param visit_colname: Column name specifying visit number
     :type visit_colname: str
-    :param weight_eligible_colnames: List of column names of length treatment_level to identify which rows are eligible for weight fitting
+    :param weight_eligible_colnames: List of column names of length
+        treatment_level to identify which rows are eligible for weight fitting
     :type weight_eligible_colnames: List[str]
     :param weight_fit_method: The fitting method to be used ["newton", "bfgs", "lbfgs", "nm"], default "newton"
     :type weight_fit_method: str
