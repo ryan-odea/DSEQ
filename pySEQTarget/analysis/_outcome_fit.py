@@ -10,9 +10,7 @@ def _apply_spline_formula(formula, indicator_squared):
 
     formula = re.sub(r"(\w+)\s*\*\s*followup\b", rf"\1*{spline}", formula)
     formula = re.sub(r"\bfollowup\s*\*\s*(\w+)", rf"{spline}*\1", formula)
-    formula = re.sub(
-        rf"\bfollowup{re.escape(indicator_squared)}\b", "", formula
-    )
+    formula = re.sub(rf"\bfollowup{re.escape(indicator_squared)}\b", "", formula)
     formula = re.sub(r"\bfollowup\b", "", formula)
 
     formula = re.sub(r"\s+", " ", formula)

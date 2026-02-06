@@ -208,7 +208,9 @@ def _create_hazard_output(hr, lci, uci, val, self):
             }
         )
     else:
-        output = pl.DataFrame({"Hazard ratio": [hr if hr is not None else float("nan")]})
+        output = pl.DataFrame(
+            {"Hazard ratio": [hr if hr is not None else float("nan")]}
+        )
 
     if val is not None:
         output = output.with_columns(pl.lit(val).alias(self.subgroup_colname))
