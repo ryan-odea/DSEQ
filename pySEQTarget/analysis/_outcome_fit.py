@@ -5,6 +5,44 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
 
+def _apply_spline_formula(formula, indicator_squared):
+    spline = "cr(followup, df=3)"
+
+    formula = re.sub(r"(\w+)\s*\*\s*followup\b", rf"\1*{spline}", formula)
+    formula = re.sub(r"\bfollowup\s*\*\s*(\w+)", rf"{spline}*\1", formula)
+    formula = re.sub(
+        rf"\bfollowup{re.escape(indicator_squared)}\b", "", formula
+    )
+    formula = re.sub(r"\bfollowup\b", "", formula)
+
+    formula = re.sub(r"\s+", " ", formula)
+    formula = re.sub(r"\+\s*\+", "+", formula)
+    formula = re.sub(r"^\s*\+\s*|\s*\+\s*$", "", formula).strip()
+
+    if formula:
+        return f"{formula} + I({spline}**2)"
+    return f"I({spline}**2)"
+
+
+def _cast_categories(self, df_pd):
+    df_pd[self.treatment_col] = df_pd[self.treatment_col].astype("category")
+    tx_bas = f"{self.treatment_col}{self.indicator_baseline}"
+    df_pd[tx_bas] = df_pd[tx_bas].astype("category")
+
+    if self.followup_class and not self.followup_spline:
+        df_pd["followup"] = df_pd["followup"].astype("category")
+        squared_col = f"followup{self.indicator_squared}"
+        if squared_col in df_pd.columns:
+            df_pd[squared_col] = df_pd[squared_col].astype("category")
+
+    if self.fixed_cols:
+        for col in self.fixed_cols:
+            if col in df_pd.columns:
+                df_pd[col] = df_pd[col].astype("category")
+
+    return df_pd
+
+
 def _outcome_fit(
     self,
     df: pl.DataFrame,
@@ -23,41 +61,10 @@ def _outcome_fit(
     if self.method == "censoring":
         df = df.filter(pl.col("switch") != 1)
 
-    df_pd = df.to_pandas()
-
-    df_pd[self.treatment_col] = df_pd[self.treatment_col].astype("category")
-    tx_bas = f"{self.treatment_col}{self.indicator_baseline}"
-    df_pd[tx_bas] = df_pd[tx_bas].astype("category")
-
-    if self.followup_class and not self.followup_spline:
-        df_pd["followup"] = df_pd["followup"].astype("category")
-        squared_col = f"followup{self.indicator_squared}"
-        if squared_col in df_pd.columns:
-            df_pd[squared_col] = df_pd[squared_col].astype("category")
+    df_pd = _cast_categories(self, df.to_pandas())
 
     if self.followup_spline:
-        spline = "cr(followup, df=3)"
-
-        formula = re.sub(r"(\w+)\s*\*\s*followup\b", rf"\1*{spline}", formula)
-        formula = re.sub(r"\bfollowup\s*\*\s*(\w+)", rf"{spline}*\1", formula)
-        formula = re.sub(
-            rf"\bfollowup{re.escape(self.indicator_squared)}\b", "", formula
-        )
-        formula = re.sub(r"\bfollowup\b", "", formula)
-
-        formula = re.sub(r"\s+", " ", formula)
-        formula = re.sub(r"\+\s*\+", "+", formula)
-        formula = re.sub(r"^\s*\+\s*|\s*\+\s*$", "", formula).strip()
-
-        if formula:
-            formula = f"{formula} + I({spline}**2)"
-        else:
-            formula = f"I({spline}**2)"
-
-    if self.fixed_cols:
-        for col in self.fixed_cols:
-            if col in df_pd.columns:
-                df_pd[col] = df_pd[col].astype("category")
+        formula = _apply_spline_formula(formula, self.indicator_squared)
 
     full_formula = f"{outcome} ~ {formula}"
 

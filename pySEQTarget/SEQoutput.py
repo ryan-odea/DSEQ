@@ -102,7 +102,9 @@ class SEQoutput:
     ) -> pl.DataFrame:
         """
         Getter for data stored within ``SEQoutput``
-        :param type: Data which you would like to access, ['km_data', 'hazard', 'risk_ratio', 'risk_difference', 'unique_outcomes', 'nonunique_outcomes', 'unique_switches', 'nonunique_switches']
+        :param type: Data which you would like to access, ['km_data', 'hazard',
+            'risk_ratio', 'risk_difference', 'unique_outcomes',
+            'nonunique_outcomes', 'unique_switches', 'nonunique_switches']
         :type type: str
         """
         match type:
