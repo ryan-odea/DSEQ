@@ -183,7 +183,7 @@ class SEQuential:
                 setattr(self, key, value)
             else:
                 raise ValueError(f"Unknown argument: {key}")
-        UIDs = self.DT.select(pl.col(self.id_col)).unique().to_series().to_list()
+        UIDs = self.DT.select(pl.col(self.id_col)).unique().sort(self.id_col).to_series().to_list()
         NIDs = len(UIDs)
 
         self._boot_samples = []
