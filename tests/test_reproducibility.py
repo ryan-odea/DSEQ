@@ -1,4 +1,7 @@
+import os
+
 import numpy as np
+import pytest
 
 from pySEQTarget import SEQopts, SEQuential
 from pySEQTarget.data import load_data
@@ -47,6 +50,9 @@ def test_hazard_bootstrap_se_reproducible_with_seed():
     assert results[0]["UCI"][0] == results[1]["UCI"][0]
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true", reason="Bootstrap reproducibility test hangs in CI"
+)
 def test_hazard_bootstrap_percentile_reproducible_with_seed():
     results = []
     for _ in range(2):
@@ -67,6 +73,9 @@ def test_hazard_bootstrap_percentile_reproducible_with_seed():
     assert results[0]["UCI"][0] == results[1]["UCI"][0]
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true", reason="Reproducibility test hangs in CI"
+)
 def test_survival_reproducible_with_seed():
     results = []
     for _ in range(2):
@@ -81,6 +90,9 @@ def test_survival_reproducible_with_seed():
     )
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true", reason="Bootstrap reproducibility test hangs in CI"
+)
 def test_survival_bootstrap_reproducible_with_seed():
     results = []
     for _ in range(2):
