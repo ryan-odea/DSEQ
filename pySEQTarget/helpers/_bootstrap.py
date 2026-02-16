@@ -131,6 +131,8 @@ def bootstrap_loop(method):
 
                 for i in tqdm(range(nboot), desc="Bootstrapping..."):
                     self._current_boot_idx = i + 1
+                    if seed is not None:
+                        self._rng = np.random.RandomState(seed + i)
                     tmp = self._offloader.load_dataframe(original_DT_ref)
                     self.DT = _prepare_boot_data(self, tmp, i)
                     if self._offloader.enabled:
