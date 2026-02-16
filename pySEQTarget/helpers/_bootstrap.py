@@ -77,6 +77,10 @@ def bootstrap_loop(method):
         results = []
         original_DT = self.DT
 
+        seed = getattr(self, "seed", None)
+        if seed is not None:
+            self._rng = np.random.RandomState(seed)
+
         self._current_boot_idx = None
         full = method(self, *args, **kwargs)
         results.append(full)
