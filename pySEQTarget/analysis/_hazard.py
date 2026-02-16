@@ -87,6 +87,7 @@ def _hazard_handler(self, data, idx, boot_idx, rng):
         data.select(keep_cols)
         .group_by([self.id_col, "trial"])
         .first()
+        .sort([self.id_col, "trial"])
         .with_columns([pl.lit(list(range(self.followup_max + 1))).alias("followup")])
         .explode("followup")
         .with_columns(
