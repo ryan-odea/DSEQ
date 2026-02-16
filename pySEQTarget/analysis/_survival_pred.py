@@ -55,6 +55,7 @@ def _calculate_risk(self, data, idx=None, val=None):
         )
         .group_by("TID")
         .first()
+        .sort("TID")
         .drop(["followup", f"followup{self.indicator_squared}"])
         .with_columns([pl.lit(followup_range).alias("followup")])
         .explode("followup")
