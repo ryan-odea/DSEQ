@@ -35,6 +35,8 @@ def _calculate_hazard_single(self, data, idx=None, val=None):
         boot_log_hrs = []
 
         for boot_idx in range(len(self._boot_samples)):
+            if self.seed is not None:
+                self._rng = np.random.RandomState(self.seed + boot_idx + 1)
             id_counts = self._boot_samples[boot_idx]
 
             boot_data_list = []
