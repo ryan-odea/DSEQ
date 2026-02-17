@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pySEQTarget"
-version = "0.12.1"
+version = "0.12.2"
 description = "Sequentially Nested Target Trial Emulation"
 readme = "README.md"
 license = {text = "MIT"}
@@ -56,7 +56,7 @@ Repository = "https://github.com/CausalInference/pySEQTarget"
 "Ryan O'Dea (ORCID)" = "https://orcid.org/0009-0000-0103-9546"
 "Alejandro Szmulewicz (ORCID)" = "https://orcid.org/0000-0002-2664-802X"
 "Tom Palmer (ORCID)" = "https://orcid.org/0000-0003-4655-4511"
-"Miguel Hernan (ORCID)" = "https://orcid.org/0000-0003-1619-8456"
+"Miguel Hernán (ORCID)" = "https://orcid.org/0000-0003-1619-8456"
 "University of Bristol (ROR)" = "https://ror.org/0524sp257"
 "Harvard University (ROR)" = "https://ror.org/03vek6s52"
 

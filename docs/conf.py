@@ -12,14 +12,14 @@ from datetime import date
 
 version = importlib.metadata.version("pySEQTarget")
 if not version:
-    version = "0.12.1"
+    version = "0.12.2"
 sys.path.insert(0, os.path.abspath("../"))
 
 project = "pySEQTarget"
 copyright = (
-    f"{date.today().year}, Ryan O'Dea, Alejandro Szmulewicz, Tom Palmer, Miguel Hernan"
+    f"{date.today().year}, Ryan O'Dea, Alejandro Szmulewicz, Tom Palmer, Miguel Hernán"
 )
-author = "Ryan O'Dea, Alejandro Szmulewicz, Tom Palmer, Miguel Hernan"
+author = "Ryan O'Dea, Alejandro Szmulewicz, Tom Palmer, Miguel Hernán"
 release = version
 
 # -- General configuration ---------------------------------------------------

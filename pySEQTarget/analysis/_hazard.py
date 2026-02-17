@@ -24,6 +24,8 @@ def _calculate_hazard(self):
 
 
 def _calculate_hazard_single(self, data, idx=None, val=None):
+    if self.seed is not None:
+        self._rng = np.random.RandomState(self.seed)
     full_log_hr = _hazard_handler(self, data, idx, 0, self._rng)
 
     if full_log_hr is None or np.isnan(full_log_hr):
@@ -33,6 +35,8 @@ def _calculate_hazard_single(self, data, idx=None, val=None):
         boot_log_hrs = []
 
         for boot_idx in range(len(self._boot_samples)):
+            if self.seed is not None:
+                self._rng = np.random.RandomState(self.seed + boot_idx + 1)
             id_counts = self._boot_samples[boot_idx]
 
             boot_data_list = []
@@ -83,6 +87,7 @@ def _hazard_handler(self, data, idx, boot_idx, rng):
         data.select(keep_cols)
         .group_by([self.id_col, "trial"])
         .first()
+        .sort([self.id_col, "trial"])
         .with_columns([pl.lit(list(range(self.followup_max + 1))).alias("followup")])
         .explode("followup")
         .with_columns(

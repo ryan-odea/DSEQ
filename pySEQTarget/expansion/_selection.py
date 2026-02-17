@@ -20,6 +20,7 @@ def _random_selection(self):
             == self.treatment_level[0]
         )
         .unique("trialID")
+        .sort("trialID")
         .get_column("trialID")
         .to_list()
     )
