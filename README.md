@@ -6,9 +6,9 @@
 [![Documentation Status](https://readthedocs.org/projects/pySEQTarget/badge/?version=latest)](https://pySEQTarget.readthedocs.io)
 
 Implementation of sequential trial emulation for the analysis of
-observational databases. The `SEQTaRget` software accommodates
+observational databases. The `pySEQTarget` software accommodates
 time-varying treatments and confounders, as well as binary and failure
-time outcomes. `SEQTaRget` allows to compare both static and dynamic
+time outcomes. `pySEQTarget` allows to compare both static and dynamic
 strategies, can be used to estimate observational analogs of
 intention-to-treat and per-protocol effects, and can adjust for
 potential selection bias.
