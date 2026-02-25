@@ -29,7 +29,6 @@ The primary API, `SEQuential` uses a dataclass system to handle function input. 
 From the user side, this amounts to creating a dataclass, `SEQopts`, and then feeding this into `SEQuential`. If you forgot to add something at class instantiation, you can, in some cases, add them when you call their respective class method.
 
 ```python
-import polars as pl
 from pySEQTarget import SEQuential, SEQopts
 from pySEQTarget.data import load_data
 
