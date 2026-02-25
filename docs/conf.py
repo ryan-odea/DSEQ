@@ -12,7 +12,7 @@ from datetime import date
 
 version = importlib.metadata.version("pySEQTarget")
 if not version:
-    version = "0.12.2"
+    version = "0.12.3"
 sys.path.insert(0, os.path.abspath("../"))
 
 project = "pySEQTarget"
