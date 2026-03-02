@@ -10,9 +10,10 @@ import os
 import sys
 from datetime import date
 
-version = importlib.metadata.version("pySEQTarget")
-if not version:
-    version = "0.12.3"
+try:
+    version = importlib.metadata.version("pySEQTarget")
+except importlib.metadata.PackageNotFoundError:
+    version = "unknown"
 sys.path.insert(0, os.path.abspath("../"))
 
 project = "pySEQTarget"
