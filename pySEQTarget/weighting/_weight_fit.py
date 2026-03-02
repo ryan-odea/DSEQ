@@ -43,6 +43,9 @@ def _fit_pair(
             WDT = WDT[WDT[_eligible_col] == 1]
 
     for rhs, out in zip(formula_attr, output_attrs):
+        if len(WDT[outcome].unique()) < 2:
+            setattr(self, out, None)
+            continue
         formula = f"{outcome}~{rhs}"
         model = smf.glm(formula, WDT, family=sm.families.Binomial())
         fitted = model.fit(disp=0, method=self.weight_fit_method)
@@ -95,6 +98,9 @@ def _fit_numerator(self, WDT):
     is_binary = sorted(self.treatment_level) == [0, 1] and self.method == "censoring"
     for i, level in enumerate(self.treatment_level):
         DT_subset = _get_subset_for_level(self, WDT, i, level, tx_lag_col)
+        if len(DT_subset[predictor].unique()) < 2:
+            fits.append(None)
+            continue
         # Use logit for binary 0/1 censoring, mnlogit otherwise
         if is_binary:
             model = smf.logit(formula, DT_subset)
@@ -130,6 +136,9 @@ def _fit_denominator(self, WDT):
         DT_subset = _get_subset_for_level(
             self, WDT, i, level, "tx_lag", exclude_followup_zero=exclude_followup_zero
         )
+        if len(DT_subset[predictor].unique()) < 2:
+            fits.append(None)
+            continue
         # Use logit for binary 0/1 censoring, mnlogit otherwise
         if is_binary:
             model = smf.logit(formula, DT_subset)

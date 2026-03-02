@@ -170,33 +170,38 @@ def _weight_predict(self, WDT):
     if self.cense_colname is not None:
         cense_num_model = self._offloader.load_model(self.cense_numerator_model)
         cense_denom_model = self._offloader.load_model(self.cense_denominator_model)
-        p_num = _predict_model(self, cense_num_model, WDT).flatten()
-        p_denom = _predict_model(self, cense_denom_model, WDT).flatten()
-        WDT = WDT.with_columns(
-            [
-                pl.Series("cense_numerator", p_num),
-                pl.Series("cense_denominator", p_denom),
-            ]
-        ).with_columns(
-            (pl.col("cense_numerator") / pl.col("cense_denominator")).alias("_cense")
-        )
+        if cense_num_model is not None and cense_denom_model is not None:
+            p_num = _predict_model(self, cense_num_model, WDT).flatten()
+            p_denom = _predict_model(self, cense_denom_model, WDT).flatten()
+            WDT = WDT.with_columns(
+                [
+                    pl.Series("cense_numerator", p_num),
+                    pl.Series("cense_denominator", p_denom),
+                ]
+            ).with_columns(
+                (pl.col("cense_numerator") / pl.col("cense_denominator")).alias("_cense")
+            )
+        else:
+            WDT = WDT.with_columns(pl.lit(1.0).alias("_cense"))
     else:
         WDT = WDT.with_columns(pl.lit(1.0).alias("_cense"))
 
     if self.visit_colname is not None:
         visit_num_model = self._offloader.load_model(self.visit_numerator_model)
         visit_denom_model = self._offloader.load_model(self.visit_denominator_model)
-        p_num = _predict_model(self, visit_num_model, WDT).flatten()
-        p_denom = _predict_model(self, visit_denom_model, WDT).flatten()
-
-        WDT = WDT.with_columns(
-            [
-                pl.Series("visit_numerator", p_num),
-                pl.Series("visit_denominator", p_denom),
-            ]
-        ).with_columns(
-            (pl.col("visit_numerator") / pl.col("visit_denominator")).alias("_visit")
-        )
+        if visit_num_model is not None and visit_denom_model is not None:
+            p_num = _predict_model(self, visit_num_model, WDT).flatten()
+            p_denom = _predict_model(self, visit_denom_model, WDT).flatten()
+            WDT = WDT.with_columns(
+                [
+                    pl.Series("visit_numerator", p_num),
+                    pl.Series("visit_denominator", p_denom),
+                ]
+            ).with_columns(
+                (pl.col("visit_numerator") / pl.col("visit_denominator")).alias("_visit")
+            )
+        else:
+            WDT = WDT.with_columns(pl.lit(1.0).alias("_visit"))
     else:
         WDT = WDT.with_columns(pl.lit(1.0).alias("_visit"))
 
