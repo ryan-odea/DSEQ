@@ -10,7 +10,7 @@ def _outcome(self) -> str:
         interaction = interaction_dose = None
 
     tv_bas = (
-        "+".join([f"{v}_bas" for v in self.time_varying_cols])
+        "+".join([f"{v}{self.indicator_baseline}" for v in self.time_varying_cols])
         if self.time_varying_cols
         else None
     )
