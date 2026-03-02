@@ -6,11 +6,11 @@ def _outcome(self) -> str:
         ["followup*dose", f"followup*dose{self.indicator_squared}"]
     )
 
-    if self.hazard or not self.km_curves:
+    if self.hazard_estimate or not self.km_curves:
         interaction = interaction_dose = None
 
     tv_bas = (
-        "+".join([f"{v}_bas" for v in self.time_varying_cols])
+        "+".join([f"{v}{self.indicator_baseline}" for v in self.time_varying_cols])
         if self.time_varying_cols
         else None
     )

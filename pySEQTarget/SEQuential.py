@@ -176,7 +176,7 @@ class SEQuential:
             "bootstrap_nboot",
             "bootstrap_sample",
             "bootstrap_CI",
-            "bootstrap_method",
+            "bootstrap_CI_method",
         }
         for key, value in kwargs.items():
             if key in allowed:
@@ -274,7 +274,7 @@ class SEQuential:
             if key in allowed:
                 setattr(self, key, val)
             else:
-                raise ValueError(f"Unknown or misplaced arugment: {key}")
+                raise ValueError(f"Unknown or misplaced argument: {key}")
 
         if not hasattr(self, "outcome_model") or not self.outcome_model:
             raise ValueError(
@@ -315,7 +315,7 @@ class SEQuential:
             if key in allowed:
                 setattr(self, key, val)
             else:
-                raise ValueError(f"Unknown or misplaced arugment: {key}")
+                raise ValueError(f"Unknown or misplaced argument: {key}")
         self.km_graph = _survival_plot(self)
 
     def collect(self) -> SEQoutput:

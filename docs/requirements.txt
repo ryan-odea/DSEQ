@@ -3,11 +3,3 @@ piccolo_theme
 sphinx-autodoc-typehints
 sphinx-copybutton
 myst-parser
-numpy
-polars
-tqdm
-statsmodels
-matplotlib
-pyarrow
-lifelines
-pySEQTarget
