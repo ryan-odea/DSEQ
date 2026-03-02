@@ -51,7 +51,7 @@ class SEQopts:
     :param indicator_baseline: How to indicate baseline columns in models
     :type indicator_baseline: str
     :param indicator_squared: How to indicate squared columns in models
-    :type indicator_baseline: str
+    :type indicator_squared: str
     :param km_curves: Boolean to create survival, risk, and incidence (if applicable) estimates
     :type km_curves: bool
     :param ncores: Number of cores to use if running in parallel
