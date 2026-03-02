@@ -9,7 +9,7 @@ class SEQopts:
     """
     Parameter builder for ``pySEQTarget.SEQuential`` analysis
 
-    :param bootstrap_nboot: Number of bootstraps to preform
+    :param bootstrap_nboot: Number of bootstraps to perform
     :type bootstrap_nboot: int
     :param bootstrap_sample: Subsampling proportion of ID-Trials gathered for each bootstrapping iteration
     :type bootstrap_sample: float
