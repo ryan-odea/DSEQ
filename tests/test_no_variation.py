@@ -2,7 +2,11 @@ import numpy as np
 import pandas as pd
 from types import SimpleNamespace
 
-from pySEQTarget.weighting._weight_fit import _fit_denominator, _fit_numerator, _fit_pair
+from pySEQTarget.weighting._weight_fit import (
+    _fit_denominator,
+    _fit_numerator,
+    _fit_pair,
+)
 
 
 def _mock_self(**overrides):
@@ -30,8 +34,20 @@ def _make_data(n=60):
     block = np.array([0] * (n // 2) + [1] * (n // 2))
     return pd.concat(
         [
-            pd.DataFrame({"tx": block, "tx_lag": np.zeros(n, int), "followup": np.arange(1, n + 1)}),
-            pd.DataFrame({"tx": block, "tx_lag": np.ones(n, int), "followup": np.arange(1, n + 1)}),
+            pd.DataFrame(
+                {
+                    "tx": block,
+                    "tx_lag": np.zeros(n, int),
+                    "followup": np.arange(1, n + 1),
+                }
+            ),
+            pd.DataFrame(
+                {
+                    "tx": block,
+                    "tx_lag": np.ones(n, int),
+                    "followup": np.arange(1, n + 1),
+                }
+            ),
         ],
         ignore_index=True,
     )
@@ -42,8 +58,20 @@ def _make_data_no_variation_level0(n=60):
     block = np.array([0] * (n // 2) + [1] * (n // 2))
     return pd.concat(
         [
-            pd.DataFrame({"tx": np.zeros(n, int), "tx_lag": np.zeros(n, int), "followup": np.arange(1, n + 1)}),
-            pd.DataFrame({"tx": block, "tx_lag": np.ones(n, int), "followup": np.arange(1, n + 1)}),
+            pd.DataFrame(
+                {
+                    "tx": np.zeros(n, int),
+                    "tx_lag": np.zeros(n, int),
+                    "followup": np.arange(1, n + 1),
+                }
+            ),
+            pd.DataFrame(
+                {
+                    "tx": block,
+                    "tx_lag": np.ones(n, int),
+                    "followup": np.arange(1, n + 1),
+                }
+            ),
         ],
         ignore_index=True,
     )
@@ -91,7 +119,9 @@ def test_fit_pair_stores_none_when_no_variation():
     df = pd.DataFrame({"ltfu": np.zeros(n, int), "followup": np.arange(n)})
     obj = _mock_self()
     _fit_pair(
-        obj, df, "cense_colname",
+        obj,
+        df,
+        "cense_colname",
         ["1", "1"],
         ["cense_numerator_model", "cense_denominator_model"],
     )
@@ -101,13 +131,17 @@ def test_fit_pair_stores_none_when_no_variation():
 
 def test_fit_pair_fits_when_variation_exists():
     n = 60
-    df = pd.DataFrame({
-        "ltfu": np.array([0] * (n // 2) + [1] * (n // 2)),
-        "followup": np.arange(n),
-    })
+    df = pd.DataFrame(
+        {
+            "ltfu": np.array([0] * (n // 2) + [1] * (n // 2)),
+            "followup": np.arange(n),
+        }
+    )
     obj = _mock_self()
     _fit_pair(
-        obj, df, "cense_colname",
+        obj,
+        df,
+        "cense_colname",
         ["1", "1"],
         ["cense_numerator_model", "cense_denominator_model"],
     )

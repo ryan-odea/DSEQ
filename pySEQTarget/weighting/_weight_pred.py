@@ -179,7 +179,9 @@ def _weight_predict(self, WDT):
                     pl.Series("cense_denominator", p_denom),
                 ]
             ).with_columns(
-                (pl.col("cense_numerator") / pl.col("cense_denominator")).alias("_cense")
+                (pl.col("cense_numerator") / pl.col("cense_denominator")).alias(
+                    "_cense"
+                )
             )
         else:
             WDT = WDT.with_columns(pl.lit(1.0).alias("_cense"))
@@ -198,7 +200,9 @@ def _weight_predict(self, WDT):
                     pl.Series("visit_denominator", p_denom),
                 ]
             ).with_columns(
-                (pl.col("visit_numerator") / pl.col("visit_denominator")).alias("_visit")
+                (pl.col("visit_numerator") / pl.col("visit_denominator")).alias(
+                    "_visit"
+                )
             )
         else:
             WDT = WDT.with_columns(pl.lit(1.0).alias("_visit"))
