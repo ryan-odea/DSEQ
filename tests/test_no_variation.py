@@ -1,12 +1,10 @@
-import numpy as np
-import pandas as pd
 from types import SimpleNamespace
 
-from pySEQTarget.weighting._weight_fit import (
-    _fit_denominator,
-    _fit_numerator,
-    _fit_pair,
-)
+import numpy as np
+import pandas as pd
+
+from pySEQTarget.weighting._weight_fit import (_fit_denominator,
+                                               _fit_numerator, _fit_pair)
 
 
 def _mock_self(**overrides):

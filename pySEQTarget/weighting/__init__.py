@@ -1,6 +1,7 @@
 from ._weight_bind import _weight_bind
 from ._weight_data import _weight_setup
-from ._weight_fit import _fit_denominator, _fit_LTFU, _fit_numerator, _fit_visit
+from ._weight_fit import (_fit_denominator, _fit_LTFU, _fit_numerator,
+                          _fit_visit)
 from ._weight_offload import _offload_weights
 from ._weight_pred import _weight_predict
 from ._weight_stats import _weight_stats
