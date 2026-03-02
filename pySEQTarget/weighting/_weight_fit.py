@@ -1,6 +1,8 @@
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
+from ..error._check_separation import _check_separation
+
 
 def _get_subset_for_level(
     self, WDT, level_idx, level, tx_lag_col, exclude_followup_zero=False
@@ -43,7 +45,9 @@ def _fit_pair(
     for rhs, out in zip(formula_attr, output_attrs):
         formula = f"{outcome}~{rhs}"
         model = smf.glm(formula, WDT, family=sm.families.Binomial())
-        setattr(self, out, model.fit(disp=0, method=self.weight_fit_method))
+        fitted = model.fit(disp=0, method=self.weight_fit_method)
+        _check_separation(fitted, label=out.replace("_model", "").replace("_", " "))
+        setattr(self, out, fitted)
 
 
 def _fit_LTFU(self, WDT):
@@ -97,6 +101,7 @@ def _fit_numerator(self, WDT):
         else:
             model = smf.mnlogit(formula, DT_subset)
         model_fit = model.fit(disp=0, method=self.weight_fit_method)
+        _check_separation(model_fit, label=f"numerator (level {level})")
         fits.append(model_fit)
 
     self.numerator_model = fits
@@ -131,6 +136,7 @@ def _fit_denominator(self, WDT):
         else:
             model = smf.mnlogit(formula, DT_subset)
         model_fit = model.fit(disp=0, method=self.weight_fit_method)
+        _check_separation(model_fit, label=f"denominator (level {level})")
         fits.append(model_fit)
 
     self.denominator_model = fits
