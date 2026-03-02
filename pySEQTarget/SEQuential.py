@@ -176,7 +176,7 @@ class SEQuential:
             "bootstrap_nboot",
             "bootstrap_sample",
             "bootstrap_CI",
-            "bootstrap_method",
+            "bootstrap_CI_method",
         }
         for key, value in kwargs.items():
             if key in allowed:
