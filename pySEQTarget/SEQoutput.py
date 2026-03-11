@@ -83,7 +83,7 @@ class SEQoutput:
             case _:
                 models = self.outcome_models
 
-        return [model.summary() for model in models]
+        return [model.summary() for model in models if model is not None]
 
     def retrieve_data(
         self,
