@@ -11,10 +11,12 @@ def test_fix_categories_preserves_integer_dtype():
     The old code did .astype(str).astype('category') which caused category-level
     mismatches and NaN predictions."""
     # Mirror actual usage: column is pre-cast to categorical dtype, plain name in formula
-    df = pd.DataFrame({
-        "y":  [0, 1, 0, 1, 0, 1, 0, 1],
-        "tx": pd.Categorical([0, 0, 0, 0, 1, 1, 1, 1]),
-    })
+    df = pd.DataFrame(
+        {
+            "y": [0, 1, 0, 1, 0, 1, 0, 1],
+            "tx": pd.Categorical([0, 0, 0, 0, 1, 1, 1, 1]),
+        }
+    )
     model = smf.glm("y ~ tx", data=df, family=sm.families.Binomial()).fit(disp=False)
 
     # Plain integers — what Polars→pandas produces before _cast_categories runs

@@ -16,10 +16,10 @@ def _fix_categories_for_predict(model, newdata):
                 col_name = factor.name()
                 if col_name in newdata.columns:
                     expected_categories = list(factor_info.categories)
-                    cat_type = pd.CategoricalDtype(
-                        categories=expected_categories
+                    cat_type = pd.CategoricalDtype(categories=expected_categories)
+                    newdata[col_name] = (
+                        newdata[col_name]
+                        .astype(type(expected_categories[0]))
+                        .astype(cat_type)
                     )
-                    newdata[col_name] = newdata[col_name].astype(
-                        type(expected_categories[0])
-                    ).astype(cat_type)
     return newdata
