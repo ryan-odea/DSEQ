@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 def _fix_categories_for_predict(model, newdata):
     """
     Fix categorical column ordering in newdata to match what the model expects.
@@ -13,9 +16,10 @@ def _fix_categories_for_predict(model, newdata):
                 col_name = factor.name()
                 if col_name in newdata.columns:
                     expected_categories = list(factor_info.categories)
-                    newdata[col_name] = newdata[col_name].astype(str)
-                    newdata[col_name] = newdata[col_name].astype("category")
-                    newdata[col_name] = newdata[col_name].cat.set_categories(
-                        expected_categories
+                    cat_type = pd.CategoricalDtype(
+                        categories=expected_categories
                     )
+                    newdata[col_name] = newdata[col_name].astype(
+                        type(expected_categories[0])
+                    ).astype(cat_type)
     return newdata
