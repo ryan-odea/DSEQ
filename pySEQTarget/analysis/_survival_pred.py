@@ -1,10 +1,11 @@
 import polars as pl
 
 from ..helpers._predict_model import _safe_predict
+from ._outcome_fit import _cast_categories
 
 
 def _get_outcome_predictions(self, TxDT, idx=None):
-    data = TxDT.to_pandas()
+    data = _cast_categories(self, TxDT.to_pandas())
     predictions = {"outcome": []}
     if self.compevent_colname is not None:
         predictions["compevent"] = []

@@ -5,6 +5,7 @@ import polars as pl
 from lifelines import CoxPHFitter
 
 from ..helpers._predict_model import _safe_predict
+from ._outcome_fit import _cast_categories
 
 
 def _calculate_hazard(self):
@@ -111,14 +112,14 @@ def _hazard_handler(self, data, idx, boot_idx, rng):
             [pl.lit(val).alias(f"{self.treatment_col}{self.indicator_baseline}")]
         )
 
-        tmp_pd = tmp.to_pandas()
+        tmp_pd = _cast_categories(self, tmp.to_pandas())
         outcome_prob = _safe_predict(outcome_model, tmp_pd)
         outcome_sim = rng.binomial(1, outcome_prob)
 
         tmp = tmp.with_columns([pl.Series("outcome", outcome_sim)])
 
         if ce_model is not None:
-            ce_tmp_pd = tmp.to_pandas()
+            ce_tmp_pd = _cast_categories(self, tmp.to_pandas())
             ce_prob = _safe_predict(ce_model, ce_tmp_pd)
             ce_sim = rng.binomial(1, ce_prob)
             tmp = tmp.with_columns([pl.Series("ce", ce_sim)])
