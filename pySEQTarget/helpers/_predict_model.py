@@ -32,8 +32,12 @@ def _safe_predict(model, data, clip_probs=True):
     if clip_probs:
         probs = np.array(probs)
         if np.any(np.isnan(probs)):
-            warnings.warn("NaN values in predicted probabilities, replacing with 0.5")
-            probs = np.where(np.isnan(probs), 0.5, probs)
+            raise ValueError(
+                "NaN values in predicted probabilities. This typically indicates "
+                "a mismatch between the model's training data types and the "
+                "prediction data (e.g. missing categorical casting), or numerical "
+                "overflow in the model coefficients."
+            )
         probs = np.clip(probs, 0, 1)
 
     return probs

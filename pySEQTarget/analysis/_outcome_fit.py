@@ -23,9 +23,11 @@ def _apply_spline_formula(formula, indicator_squared):
 
 
 def _cast_categories(self, df_pd):
-    df_pd[self.treatment_col] = df_pd[self.treatment_col].astype("category")
+    if self.treatment_col in df_pd.columns:
+        df_pd[self.treatment_col] = df_pd[self.treatment_col].astype("category")
     tx_bas = f"{self.treatment_col}{self.indicator_baseline}"
-    df_pd[tx_bas] = df_pd[tx_bas].astype("category")
+    if tx_bas in df_pd.columns:
+        df_pd[tx_bas] = df_pd[tx_bas].astype("category")
 
     if self.followup_class and not self.followup_spline:
         df_pd["followup"] = df_pd["followup"].astype("category")
