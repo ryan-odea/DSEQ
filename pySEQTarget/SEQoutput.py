@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Literal, Optional
 
 import matplotlib.figure
+import matplotlib.pyplot as plt
 import polars as pl
 from statsmodels.base.wrapper import ResultsWrapper
 
@@ -61,9 +62,14 @@ class SEQoutput:
 
     def plot(self) -> None:
         """
-        Prints the kaplan-meier graph
+        Displays the kaplan-meier graph
         """
-        print(self.km_graph)
+        if self.km_graph is None:
+            raise ValueError(
+                "No plot available. Ensure km_curves=True and run SEQuential.plot() before collect()."
+            )
+        plt.figure(self.km_graph)
+        plt.show()
 
     def summary(
         self, type=Optional[Literal["numerator", "denominator", "outcome", "compevent"]]
