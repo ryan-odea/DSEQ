@@ -1,3 +1,5 @@
+import unittest.mock as mock
+
 import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
@@ -40,6 +42,13 @@ def test_sequential_plot_returns_figure(base_seq):
     """SEQuential.plot() should store a Figure in km_graph, not print its repr."""
     base_seq.plot()
     assert isinstance(base_seq.km_graph, matplotlib.figure.Figure)
+
+
+def test_sequential_plot_calls_show(base_seq):
+    """SEQuential.plot() must call plt.show() to actually display the figure."""
+    with mock.patch("matplotlib.pyplot.show") as mock_show:
+        base_seq.plot()
+        mock_show.assert_called_once()
 
 
 def test_seqoutput_plot_shows_figure(base_seq):
