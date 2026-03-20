@@ -51,6 +51,6 @@ def _data_checker(self):
 
         if len(violations) > 0:
             raise ValueError(
-                f"Column '{col}' violates 'once one, always one' rule for excusing treatment "
+                f"Column '{col}' violates the 'once one, always one' rule: "
                 f"{len(violations)} ID(s) have zeros after ones."
             )
