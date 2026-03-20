@@ -2,6 +2,11 @@ from ..helpers import _pad
 
 
 def _param_checker(self):
+    overlap = set(self.time_varying_cols) & set(self.fixed_cols)
+    if overlap:
+        raise ValueError(
+            f"Columns cannot appear in both time_varying_cols and fixed_cols: {sorted(overlap)}"
+        )
     if (
         self.subgroup_colname is not None
         and self.subgroup_colname not in self.fixed_cols
