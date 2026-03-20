@@ -4,6 +4,7 @@ from collections import Counter
 from dataclasses import asdict
 from typing import List, Literal, Optional
 
+import matplotlib.pyplot as plt
 import numpy as np
 import polars as pl
 
@@ -317,6 +318,7 @@ class SEQuential:
             else:
                 raise ValueError(f"Unknown or misplaced argument: {key}")
         self.km_graph = _survival_plot(self)
+        plt.show()
 
     def collect(self) -> SEQoutput:
         """
