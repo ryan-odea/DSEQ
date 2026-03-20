@@ -7,6 +7,14 @@ def _param_checker(self):
         raise ValueError(
             f"Columns cannot appear in both time_varying_cols and fixed_cols: {sorted(overlap)}"
         )
+
+    actual_levels = set(self.data[self.treatment_col].unique().to_list())
+    missing_levels = set(self.treatment_level) - actual_levels
+    if missing_levels:
+        raise ValueError(
+            f"treatment_level contains values not found in '{self.treatment_col}': {sorted(missing_levels)}"
+        )
+
     if (
         self.subgroup_colname is not None
         and self.subgroup_colname not in self.fixed_cols
