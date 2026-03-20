@@ -184,12 +184,20 @@ class SEQopts:
             raise ValueError("bootstrap_nboot must be a positive integer.")
         if self.ncores < 1 or not isinstance(self.ncores, int):
             raise ValueError("ncores must be a positive integer.")
-        if not (0.0 <= self.bootstrap_sample <= 1.0):
-            raise ValueError("bootstrap_sample must be between 0 and 1.")
+        if not (0.0 < self.bootstrap_sample <= 1.0):
+            raise ValueError("bootstrap_sample must be between 0 (exclusive) and 1.")
         if not (0.0 < self.bootstrap_CI < 1.0):
             raise ValueError("bootstrap_CI must be between 0 and 1.")
-        if not (0.0 <= self.selection_sample <= 1.0):
-            raise ValueError("selection_sample must be between 0 and 1.")
+        if not (0.0 < self.selection_sample <= 1.0):
+            raise ValueError("selection_sample must be between 0 (exclusive) and 1.")
+        if self.weight_max is not None and self.weight_max <= self.weight_min:
+            raise ValueError(
+                f"weight_min ({self.weight_min}) must be less than weight_max ({self.weight_max})."
+            )
+        if self.followup_max is not None and self.followup_max <= self.followup_min:
+            raise ValueError(
+                f"followup_min ({self.followup_min}) must be less than followup_max ({self.followup_max})."
+            )
 
     def _validate_choices(self):
         if self.plot_type not in ["risk", "survival", "incidence"]:
