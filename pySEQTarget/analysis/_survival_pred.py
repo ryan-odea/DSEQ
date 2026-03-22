@@ -4,6 +4,27 @@ from ..helpers._predict_model import _safe_predict
 from ._outcome_fit import _cast_categories
 
 
+def _store_boot_risks(obj, treatment_val, TxDT, boot_cols, is_survival=False):
+    """Store per-bootstrap mean risks per followup for paired RD/RR CI computation."""
+    if not boot_cols:
+        return
+    df = TxDT.select(["followup"] + boot_cols)
+    if is_survival:
+        df = df.with_columns([(1 - pl.col(c)).alias(c) for c in boot_cols])
+    obj._boot_risks[treatment_val] = (
+        df.unpivot(
+            index="followup",
+            on=boot_cols,
+            variable_name="_col",
+            value_name="risk",
+        )
+        .with_columns(
+            pl.col("_col").str.extract(r"(\d+)$").cast(pl.Int32).alias("boot_idx")
+        )
+        .drop("_col")
+    )
+
+
 def _get_outcome_predictions(self, TxDT, idx=None):
     data = _cast_categories(self, TxDT.to_pandas())
     predictions = {"outcome": []}
@@ -26,6 +47,8 @@ def _pred_risk(self):
     has_subgroups = (
         isinstance(self.outcome_model[0], list) if self.outcome_model else False
     )
+
+    self._boot_risks = {}
 
     if not has_subgroups:
         return _calculate_risk(self, self.DT, idx=None, val=None)
@@ -138,6 +161,8 @@ def _calculate_risk(self, data, idx=None, val=None):
             )
             main_col = "surv"
             boot_cols = [col for col in surv_names if col != "surv"]
+            if val is None:
+                _store_boot_risks(self, treatment_val, TxDT, boot_cols, is_survival=True)
         else:
             TxDT = (
                 TxDT.with_columns(
@@ -153,6 +178,8 @@ def _calculate_risk(self, data, idx=None, val=None):
             )
             main_col = "pred_outcome"
             boot_cols = [col for col in outcome_names if col != "pred_outcome"]
+            if val is None:
+                _store_boot_risks(self, treatment_val, TxDT, boot_cols)
 
         if boot_cols:
             risk = (
