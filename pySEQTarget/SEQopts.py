@@ -130,7 +130,7 @@ class SEQopts:
     indicator_baseline: str = "_bas"
     indicator_squared: str = "_sq"
     km_curves: bool = False
-    ncores: int = multiprocessing.cpu_count()
+    ncores: int = max(1, multiprocessing.cpu_count() - 1)
     numerator: Optional[str] = None
     offload: bool = False
     offload_dir: str = "_seq_models"
@@ -140,7 +140,7 @@ class SEQopts:
     )
     plot_labels: List[str] = field(default_factory=lambda: [])
     plot_title: str = None
-    plot_type: Literal["risk", "survival", "incidence"] = "risk"
+    plot_type: Literal["risk", "survival", "incidence"] = "survival"
     seed: Optional[int] = None
     selection_first_trial: bool = False
     selection_sample: float = 0.8
@@ -155,7 +155,7 @@ class SEQopts:
     weight_max: float = None
     weight_lag_condition: bool = True
     weight_p99: bool = False
-    weight_preexpansion: bool = False
+    weight_preexpansion: bool = True
     weighted: bool = False
 
     def _validate_bools(self):
@@ -184,12 +184,20 @@ class SEQopts:
             raise ValueError("bootstrap_nboot must be a positive integer.")
         if self.ncores < 1 or not isinstance(self.ncores, int):
             raise ValueError("ncores must be a positive integer.")
-        if not (0.0 <= self.bootstrap_sample <= 1.0):
-            raise ValueError("bootstrap_sample must be between 0 and 1.")
+        if not (0.0 < self.bootstrap_sample <= 1.0):
+            raise ValueError("bootstrap_sample must be between 0 (exclusive) and 1.")
         if not (0.0 < self.bootstrap_CI < 1.0):
             raise ValueError("bootstrap_CI must be between 0 and 1.")
-        if not (0.0 <= self.selection_sample <= 1.0):
-            raise ValueError("selection_sample must be between 0 and 1.")
+        if not (0.0 < self.selection_sample <= 1.0):
+            raise ValueError("selection_sample must be between 0 (exclusive) and 1.")
+        if self.weight_max is not None and self.weight_max <= self.weight_min:
+            raise ValueError(
+                f"weight_min ({self.weight_min}) must be less than weight_max ({self.weight_max})."
+            )
+        if self.followup_max is not None and self.followup_max <= self.followup_min:
+            raise ValueError(
+                f"followup_min ({self.followup_min}) must be less than followup_max ({self.followup_max})."
+            )
 
     def _validate_choices(self):
         if self.plot_type not in ["risk", "survival", "incidence"]:

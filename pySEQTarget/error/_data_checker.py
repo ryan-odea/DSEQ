@@ -1,7 +1,25 @@
 import polars as pl
 
 
+def _check_binary(data, col):
+    unique_vals = set(data[col].drop_nulls().unique().to_list())
+    if not unique_vals.issubset({0, 1}):
+        raise ValueError(
+            f"Column '{col}' must be binary (0/1) but contains values: {sorted(unique_vals)}"
+        )
+
+
 def _data_checker(self):
+    _check_binary(self.data, self.eligible_col)
+    _check_binary(self.data, self.outcome_col)
+
+    if self.cense_eligible_colname is not None:
+        _check_binary(self.data, self.cense_eligible_colname)
+
+    for col in self.weight_eligible_colnames:
+        if col is not None:
+            _check_binary(self.data, col)
+
     check = self.data.group_by(self.id_col).agg(
         [pl.len().alias("row_count"), pl.col(self.time_col).max().alias("max_time")]
     )
@@ -33,6 +51,6 @@ def _data_checker(self):
 
         if len(violations) > 0:
             raise ValueError(
-                f"Column '{col}' violates 'once one, always one' rule for excusing treatment "
+                f"Column '{col}' violates the 'once one, always one' rule: "
                 f"{len(violations)} ID(s) have zeros after ones."
             )
