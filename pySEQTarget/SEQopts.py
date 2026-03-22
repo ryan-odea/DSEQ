@@ -140,7 +140,7 @@ class SEQopts:
     )
     plot_labels: List[str] = field(default_factory=lambda: [])
     plot_title: str = None
-    plot_type: Literal["risk", "survival", "incidence"] = "risk"
+    plot_type: Literal["risk", "survival", "incidence"] = "survival"
     seed: Optional[int] = None
     selection_first_trial: bool = False
     selection_sample: float = 0.8
