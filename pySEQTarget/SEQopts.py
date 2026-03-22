@@ -130,7 +130,7 @@ class SEQopts:
     indicator_baseline: str = "_bas"
     indicator_squared: str = "_sq"
     km_curves: bool = False
-    ncores: int = multiprocessing.cpu_count()
+    ncores: int = max(1, multiprocessing.cpu_count() - 1)
     numerator: Optional[str] = None
     offload: bool = False
     offload_dir: str = "_seq_models"
