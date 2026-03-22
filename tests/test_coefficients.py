@@ -81,7 +81,7 @@ def test_PostE_dose_response_coefs():
         time_varying_cols=["N", "L", "P"],
         fixed_cols=["sex"],
         method="dose-response",
-        parameters=SEQopts(weighted=True),
+        parameters=SEQopts(weighted=True, weight_preexpansion=False),
     )
 
     s.expand()
@@ -147,7 +147,7 @@ def test_PostE_censoring_coefs():
         time_varying_cols=["N", "L", "P"],
         fixed_cols=["sex"],
         method="censoring",
-        parameters=SEQopts(weighted=True),
+        parameters=SEQopts(weighted=True, weight_preexpansion=False),
     )
     s.expand()
     s.fit()
@@ -216,6 +216,7 @@ def test_PostE_censoring_excused_coefs():
         method="censoring",
         parameters=SEQopts(
             weighted=True,
+            weight_preexpansion=False,
             excused=True,
             excused_colnames=["excusedZero", "excusedOne"],
             weight_max=1,
@@ -287,7 +288,7 @@ def test_PostE_LTFU_ITT():
         time_varying_cols=["N", "L", "P"],
         fixed_cols=["sex"],
         method="ITT",
-        parameters=SEQopts(weighted=True, cense_colname="LTFU"),
+        parameters=SEQopts(weighted=True, weight_preexpansion=False, cense_colname="LTFU"),
     )
     s.expand()
     s.fit()
