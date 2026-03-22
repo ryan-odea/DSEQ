@@ -288,7 +288,9 @@ def test_PostE_LTFU_ITT():
         time_varying_cols=["N", "L", "P"],
         fixed_cols=["sex"],
         method="ITT",
-        parameters=SEQopts(weighted=True, weight_preexpansion=False, cense_colname="LTFU"),
+        parameters=SEQopts(
+            weighted=True, weight_preexpansion=False, cense_colname="LTFU"
+        ),
     )
     s.expand()
     s.fit()

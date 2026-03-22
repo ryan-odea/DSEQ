@@ -165,7 +165,10 @@ def test_PostE_censoring_excused_covariates():
         fixed_cols=["sex"],
         method="censoring",
         parameters=SEQopts(
-            weighted=True, weight_preexpansion=False, excused=True, excused_colnames=["excusedZero", "excusedOne"]
+            weighted=True,
+            weight_preexpansion=False,
+            excused=True,
+            excused_colnames=["excusedZero", "excusedOne"],
         ),
     )
     assert (
