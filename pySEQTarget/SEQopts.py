@@ -155,7 +155,7 @@ class SEQopts:
     weight_max: float = None
     weight_lag_condition: bool = True
     weight_p99: bool = False
-    weight_preexpansion: bool = False
+    weight_preexpansion: bool = True
     weighted: bool = False
 
     def _validate_bools(self):
