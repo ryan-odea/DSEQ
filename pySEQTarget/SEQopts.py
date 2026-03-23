@@ -34,8 +34,8 @@ class SEQopts:
     :type denominator: Optional[str] or None
     :param excused: Boolean to allow excused conditions when method is censoring
     :type excused: bool
-    :param excused_colnames: Column names (at the same length of treatment_level) specifying excused conditions
-    :type excused_colnames: List[str] or []
+    :param excused_colnames: Column names (at the same length of treatment_level) specifying excused conditions, default ``[]``
+    :type excused_colnames: List[str]
     :param followup_class: Boolean to force followup values to be treated as classes
     :type followup_class: bool
     :param followup_include: Boolean to force regular followup values into model covariates
@@ -65,9 +65,9 @@ class SEQopts:
     :type offload_dir: str
     :param parallel: Boolean to run model fitting in parallel
     :type parallel: bool
-    :param plot_colors: List of colors for KM plots, if applicable
+    :param plot_colors: List of colors for KM plots, if applicable, default ``["#F8766D", "#00BFC4", "#555555"]``
     :type plot_colors: List[str]
-    :param plot_labels: List of length treat_level to specify treatment labeling
+    :param plot_labels: List of length treat_level to specify treatment labeling, default ``[]``
     :type plot_labels: List[str]
     :param plot_title: Plot title
     :type plot_title: str
@@ -83,14 +83,14 @@ class SEQopts:
     :type selection_random: bool
     :param subgroup_colname: Column name for subgroups to share the same weighting but different outcome model fits
     :type subgroup_colname: str
-    :param treatment_level: List of eligible treatment levels within treatment_col
+    :param treatment_level: List of eligible treatment levels within treatment_col, default ``[0, 1]``
     :type treatment_level: List[int]
     :param trial_include: Boolean to force trial values into model covariates
     :type trial_include: bool
     :param visit_colname: Column name specifying visit number
     :type visit_colname: str
     :param weight_eligible_colnames: List of column names of length
-        treatment_level to identify which rows are eligible for weight fitting
+        treatment_level to identify which rows are eligible for weight fitting, default ``[]``
     :type weight_eligible_colnames: List[str]
     :param weight_fit_method: The fitting method to be used ["newton", "bfgs", "lbfgs", "nm"], default "newton"
     :type weight_fit_method: str
