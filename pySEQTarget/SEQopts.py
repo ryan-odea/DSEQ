@@ -54,7 +54,7 @@ class SEQopts:
     :type indicator_squared: str
     :param km_curves: Boolean to create survival, risk, and incidence (if applicable) estimates
     :type km_curves: bool
-    :param ncores: Number of cores to use if running in parallel
+    :param ncores: Number of cores to use if running in parallel, default ``max(1, cpu_count() - 1)``
     :type ncores: int
     :param numerator: Override to specify the outcome patsy formula for
         numerator models; "1" or "" indicate intercept only model
@@ -130,7 +130,7 @@ class SEQopts:
     indicator_baseline: str = "_bas"
     indicator_squared: str = "_sq"
     km_curves: bool = False
-    ncores: int = max(1, multiprocessing.cpu_count() - 1)
+    ncores: Optional[int] = None
     numerator: Optional[str] = None
     offload: bool = False
     offload_dir: str = "_seq_models"
@@ -220,6 +220,8 @@ class SEQopts:
                 setattr(self, i, "".join(attr.split()))
 
     def __post_init__(self):
+        if self.ncores is None:
+            self.ncores = max(1, multiprocessing.cpu_count() - 1)
         self._validate_bools()
         self._validate_ranges()
         self._validate_choices()
