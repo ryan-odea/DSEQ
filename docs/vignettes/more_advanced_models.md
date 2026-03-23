@@ -25,7 +25,7 @@ my_options = SEQopts(
     weighted = True,            # enables the weighting
     weight_lag_condition=False, # turn off lag condition when weighting for adherance
     weight_p99 = True,          # bounds weights by the 1st and 99th percentile
-    weight_preexpansion = False # weights are predicted using post-expansion data as a stabilizer
+    weight_preexpansion = True  # weights are predicted using pre-expansion data
 )
 ```
 
