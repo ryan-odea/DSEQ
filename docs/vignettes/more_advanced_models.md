@@ -15,7 +15,7 @@ from pySEQTarget.data import load_data
 
 data = load_data("SEQdata_LTFU")
 my_options = SEQopts(
-    bootstrap_nboot = 20,       # 20 bootstrap iterations
+    bootstrap_nboot = 20,       # 20 bootstrap iterations (for demonstration only — use 500+ in practice)
     cense_colname = "LTFU",      # control for losses-to-followup as a censor
     excused = True,             # allow excused treatment swapping
     excused_colnames = ["excusedZero", "excusedOne"],
