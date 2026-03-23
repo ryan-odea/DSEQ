@@ -3,6 +3,7 @@ name: Auto-format Code
 on:
   push:
     branches: [main, develop]
+  workflow_dispatch:
 
 jobs:
   format:
