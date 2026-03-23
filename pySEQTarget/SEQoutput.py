@@ -76,6 +76,7 @@ class SEQoutput:
     ) -> List:
         """
         Returns a list of model summaries of either the numerator, denominator, outcome, or competing event models
+
         :param type: Indicator for which model list you would like returned
         :type type: str
         """
@@ -108,6 +109,7 @@ class SEQoutput:
     ) -> pl.DataFrame:
         """
         Getter for data stored within ``SEQoutput``
+
         :param type: Data which you would like to access, ['km_data', 'hazard',
             'risk_ratio', 'risk_difference', 'unique_outcomes',
             'nonunique_outcomes', 'unique_switches', 'nonunique_switches']

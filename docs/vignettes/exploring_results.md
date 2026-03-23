@@ -1,6 +1,6 @@
 # Exploring Results
 
-Recall our previous example, {doc}`~vignettes/more_advanced_models`, where we finalized and collected our results with 
+Recall our previous example, {doc}`More Advanced Analysis <more_advanced_models>`, where we finalized and collected our results with 
 
 ```python
 my_output = my_analysis.collect()
