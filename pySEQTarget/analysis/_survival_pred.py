@@ -162,7 +162,9 @@ def _calculate_risk(self, data, idx=None, val=None):
             main_col = "surv"
             boot_cols = [col for col in surv_names if col != "surv"]
             if val is None:
-                _store_boot_risks(self, treatment_val, TxDT, boot_cols, is_survival=True)
+                _store_boot_risks(
+                    self, treatment_val, TxDT, boot_cols, is_survival=True
+                )
         else:
             TxDT = (
                 TxDT.with_columns(

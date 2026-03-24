@@ -139,9 +139,7 @@ def _risk_estimates(self):
                 # Filter degenerate RR bootstrap values (risk_y == 0 or negative)
                 valid_rr = paired.filter(
                     (pl.col("risk_y") > 0) & (pl.col("risk_x") >= 0)
-                ).with_columns(
-                    (pl.col("risk_x") / pl.col("risk_y")).alias("RR")
-                )
+                ).with_columns((pl.col("risk_x") / pl.col("risk_y")).alias("RR"))
 
                 if self.bootstrap_CI_method == "percentile":
                     rd_lci = float(paired["RD"].quantile(alpha / 2))
