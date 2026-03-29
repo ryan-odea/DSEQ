@@ -47,10 +47,7 @@ def _dynamic(self):
 
         if self.excused:
             excused_cumsum = (
-                pl.col("isExcused")
-                .cast(pl.Int8)
-                .cum_sum()
-                .over([self.id_col, "trial"])
+                pl.col("isExcused").cast(pl.Int8).cum_sum().over([self.id_col, "trial"])
             )
             DT = DT.with_columns(
                 pl.when(excused_cumsum > 0)

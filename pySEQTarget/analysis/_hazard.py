@@ -41,7 +41,10 @@ def _calculate_hazard_single(self, data, idx=None, val=None):
             id_counts = self._boot_samples[boot_idx]
 
             counts = pl.DataFrame(
-                {self.id_col: list(id_counts.keys()), "_count": list(id_counts.values())}
+                {
+                    self.id_col: list(id_counts.keys()),
+                    "_count": list(id_counts.values()),
+                }
             )
             boot_data = (
                 data.lazy()

@@ -83,7 +83,9 @@ def test_subgroup_bootstrapped_survival():
         time_varying_cols=["N", "L", "P"],
         fixed_cols=["sex"],
         method="ITT",
-        parameters=SEQopts(km_curves=True, subgroup_colname="sex", bootstrap_nboot=2, seed=42),
+        parameters=SEQopts(
+            km_curves=True, subgroup_colname="sex", bootstrap_nboot=2, seed=42
+        ),
     )
     s.expand()
     s.bootstrap()
