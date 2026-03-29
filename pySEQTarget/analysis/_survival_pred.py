@@ -112,6 +112,10 @@ def _calculate_risk(self, data, idx=None, val=None):
                 )
 
         preds = _get_outcome_predictions(self, TxDT, idx=idx)
+
+        # Drop original data columns — only followup and TID needed from here
+        TxDT = TxDT.select(["followup", "TID"])
+
         pred_series = [pl.Series("pred_outcome", preds["outcome"][0])]
 
         if self.bootstrap_nboot > 0:
