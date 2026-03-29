@@ -17,9 +17,10 @@ def _prepare_boot_data(self, data, boot_id):
         {self.id_col: list(id_counts.keys()), "count": list(id_counts.values())}
     )
 
-    bootstrapped = data.join(counts, on=self.id_col, how="inner")
     bootstrapped = (
-        bootstrapped.with_columns(pl.int_ranges(0, pl.col("count")).alias("replicate"))
+        data.lazy()
+        .join(counts.lazy(), on=self.id_col, how="inner")
+        .with_columns(pl.int_ranges(0, pl.col("count")).alias("replicate"))
         .explode("replicate")
         .with_columns(
             (
@@ -29,6 +30,7 @@ def _prepare_boot_data(self, data, boot_id):
             ).alias(self.id_col)
         )
         .drop("count", "replicate")
+        .collect()
     )
 
     return bootstrapped
