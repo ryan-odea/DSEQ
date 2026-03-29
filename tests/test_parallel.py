@@ -22,7 +22,7 @@ def test_parallel_ITT():
         time_varying_cols=["N", "L", "P"],
         fixed_cols=["sex"],
         method="ITT",
-        parameters=SEQopts(parallel=True, bootstrap_nboot=2, ncores=1),
+        parameters=SEQopts(parallel=True, bootstrap_nboot=2, ncores=1, seed=42),
     )
     s.expand()
     s.bootstrap()
