@@ -46,21 +46,17 @@ def _dynamic(self):
         ).sort([self.id_col, "trial", "followup"])
 
         if self.excused:
-            DT = (
-                DT.with_columns(
-                    pl.col("isExcused")
-                    .cast(pl.Int8)
-                    .cum_sum()
-                    .over([self.id_col, "trial"])
-                    .alias("_excused_tmp")
-                )
-                .with_columns(
-                    pl.when(pl.col("_excused_tmp") > 0)
-                    .then(pl.lit(False))
-                    .otherwise(pl.col("switch"))
-                    .alias("switch")
-                )
-                .drop("_excused_tmp")
+            excused_cumsum = (
+                pl.col("isExcused")
+                .cast(pl.Int8)
+                .cum_sum()
+                .over([self.id_col, "trial"])
+            )
+            DT = DT.with_columns(
+                pl.when(excused_cumsum > 0)
+                .then(pl.lit(False))
+                .otherwise(pl.col("switch"))
+                .alias("switch")
             )
 
         DT = DT.filter(

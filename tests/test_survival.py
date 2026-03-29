@@ -40,7 +40,7 @@ def test_bootstrapped_survival():
         time_varying_cols=["N", "L", "P"],
         fixed_cols=["sex"],
         method="ITT",
-        parameters=SEQopts(km_curves=True, bootstrap_nboot=2),
+        parameters=SEQopts(km_curves=True, bootstrap_nboot=2, seed=42),
     )
     s.expand()
     s.bootstrap()
@@ -83,7 +83,7 @@ def test_subgroup_bootstrapped_survival():
         time_varying_cols=["N", "L", "P"],
         fixed_cols=["sex"],
         method="ITT",
-        parameters=SEQopts(km_curves=True, subgroup_colname="sex", bootstrap_nboot=2),
+        parameters=SEQopts(km_curves=True, subgroup_colname="sex", bootstrap_nboot=2, seed=42),
     )
     s.expand()
     s.bootstrap()
@@ -139,6 +139,7 @@ def test_bootstrapped_compevent():
             compevent_colname="LTFU",
             plot_type="incidence",
             bootstrap_nboot=2,
+            seed=42,
         ),
     )
     s.expand()

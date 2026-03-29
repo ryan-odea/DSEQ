@@ -34,11 +34,11 @@ def _get_outcome_predictions(self, TxDT, idx=None):
     for boot_model in self.outcome_model:
         model_dict = boot_model[idx] if idx is not None else boot_model
         outcome_model = self._offloader.load_model(model_dict["outcome"])
-        predictions["outcome"].append(_safe_predict(outcome_model, data.copy()))
+        predictions["outcome"].append(_safe_predict(outcome_model, data))
 
         if self.compevent_colname is not None:
             compevent_model = self._offloader.load_model(model_dict["compevent"])
-            predictions["compevent"].append(_safe_predict(compevent_model, data.copy()))
+            predictions["compevent"].append(_safe_predict(compevent_model, data))
 
     return predictions
 
@@ -79,7 +79,6 @@ def _calculate_risk(self, data, idx=None, val=None):
         )
         .group_by("TID")
         .first()
-        .sort("TID")
         .drop(["followup", f"followup{self.indicator_squared}"])
         .with_columns([pl.lit(followup_range).alias("followup")])
         .explode("followup")
@@ -112,6 +111,10 @@ def _calculate_risk(self, data, idx=None, val=None):
                 )
 
         preds = _get_outcome_predictions(self, TxDT, idx=idx)
+
+        # Drop original data columns — only followup and TID needed from here
+        TxDT = TxDT.select(["followup", "TID"])
+
         pred_series = [pl.Series("pred_outcome", preds["outcome"][0])]
 
         if self.bootstrap_nboot > 0:

@@ -18,13 +18,11 @@ def _safe_predict(model, data, clip_probs=True):
     clip_probs : bool
         If True, clip probabilities to [0, 1] and replace NaN with 0.5
     """
-    data = data.copy()
-
     try:
         probs = model.predict(data)
     except Exception as e:
         if "mismatching levels" in str(e):
-            data = _fix_categories_for_predict(model, data)
+            data = _fix_categories_for_predict(model, data.copy())
             probs = model.predict(data)
         else:
             raise

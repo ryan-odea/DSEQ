@@ -19,6 +19,7 @@ def test_compevent_offload():
         weight_p99=True,
         weight_preexpansion=True,
         offload=True,
+        seed=42,
     )
 
     model = SEQuential(

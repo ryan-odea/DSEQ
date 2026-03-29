@@ -40,13 +40,17 @@ def _calculate_hazard_single(self, data, idx=None, val=None):
                 self._rng = np.random.RandomState(self.seed + boot_idx + 1)
             id_counts = self._boot_samples[boot_idx]
 
-            boot_data_list = []
-            for id_val, count in id_counts.items():
-                id_data = data.filter(pl.col(self.id_col) == id_val)
-                for _ in range(count):
-                    boot_data_list.append(id_data)
-
-            boot_data = pl.concat(boot_data_list)
+            counts = pl.DataFrame(
+                {self.id_col: list(id_counts.keys()), "_count": list(id_counts.values())}
+            )
+            boot_data = (
+                data.lazy()
+                .join(counts.lazy(), on=self.id_col, how="inner")
+                .with_columns(pl.int_ranges(0, pl.col("_count")).alias("_rep"))
+                .explode("_rep")
+                .drop("_count", "_rep")
+                .collect()
+            )
 
             boot_log_hr = _hazard_handler(self, boot_data, idx, boot_idx + 1, self._rng)
             if boot_log_hr is not None and not np.isnan(boot_log_hr):

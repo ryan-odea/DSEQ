@@ -42,6 +42,8 @@ intersphinx_mapping = {"py": ("https://docs.python.org/3", None)}
 templates_path = ["_templates"]
 exclude_patterns = []
 
+autodoc_class_signature = "separated"
+
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

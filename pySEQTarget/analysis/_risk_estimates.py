@@ -141,18 +141,28 @@ def _risk_estimates(self):
                     (pl.col("risk_y") > 0) & (pl.col("risk_x") >= 0)
                 ).with_columns((pl.col("risk_x") / pl.col("risk_y")).alias("RR"))
 
+                n_valid_rr = len(valid_rr)
+
                 if self.bootstrap_CI_method == "percentile":
                     rd_lci = float(paired["RD"].quantile(alpha / 2))
                     rd_uci = float(paired["RD"].quantile(1 - alpha / 2))
-                    rr_lci = float(valid_rr["RR"].quantile(alpha / 2))
-                    rr_uci = float(valid_rr["RR"].quantile(1 - alpha / 2))
+                    if n_valid_rr >= 2:
+                        rr_lci = float(valid_rr["RR"].quantile(alpha / 2))
+                        rr_uci = float(valid_rr["RR"].quantile(1 - alpha / 2))
+                    else:
+                        rr_lci = float("nan")
+                        rr_uci = float("nan")
                 else:
                     rd_se = float(paired["RD"].std())
                     rd_lci = rd_point - z * rd_se
                     rd_uci = rd_point + z * rd_se
-                    log_rr_se = float(valid_rr["RR"].log().std())
-                    rr_lci = math.exp(math.log(rr_point) - z * log_rr_se)
-                    rr_uci = math.exp(math.log(rr_point) + z * log_rr_se)
+                    if n_valid_rr >= 2 and rr_point > 0:
+                        log_rr_se = float(valid_rr["RR"].log().std())
+                        rr_lci = math.exp(math.log(rr_point) - z * log_rr_se)
+                        rr_uci = math.exp(math.log(rr_point) + z * log_rr_se)
+                    else:
+                        rr_lci = float("nan")
+                        rr_uci = float("nan")
 
                 rd_comp = pl.DataFrame(
                     {

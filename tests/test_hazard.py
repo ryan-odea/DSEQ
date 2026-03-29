@@ -35,7 +35,7 @@ def test_bootstrap_hazard():
         time_varying_cols=["N", "L", "P"],
         fixed_cols=["sex"],
         method="ITT",
-        parameters=SEQopts(hazard_estimate=True, bootstrap_nboot=2),
+        parameters=SEQopts(hazard_estimate=True, bootstrap_nboot=2, seed=42),
     )
     s.expand()
     s.bootstrap()

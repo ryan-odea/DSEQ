@@ -289,6 +289,9 @@ class SEQuential:
         self.km_data = _clamp(pl.concat([risk_data, surv_data]))
         self.risk_estimates = _risk_estimates(self)
 
+        if hasattr(self, "_boot_risks"):
+            del self._boot_risks
+
         end = time.perf_counter()
         self._survival_time = _format_time(start, end)
 
