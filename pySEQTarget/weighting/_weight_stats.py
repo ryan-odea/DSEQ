@@ -17,7 +17,7 @@ def _weight_stats(self):
     )
 
     if self.weight_p99:
-        self.weight_min = stats.select("weight_p01").item()
-        self.weight_max = stats.select("weight_p99").item()
+        self.weight_min = float(stats["weight_p01"][0])
+        self.weight_max = float(stats["weight_p99"][0])
 
     return stats
