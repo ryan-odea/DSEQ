@@ -95,4 +95,15 @@ def _binder(self, kept_cols):
         .drop([f"{self.eligible_col}{self.indicator_baseline}", self.eligible_col])
     )
 
+    # Truncate each (id, trial) at the first outcome event so that subjects who
+    # experience the outcome early are not carried forward with subsequent rows.
+    DT = DT.filter(
+        pl.col(self.outcome_col)
+        .fill_null(0)
+        .cum_max()
+        .shift(1, fill_value=0)
+        .over([self.id_col, "trial"])
+        == 0
+    )
+
     return DT
