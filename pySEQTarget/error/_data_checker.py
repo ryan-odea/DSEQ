@@ -18,6 +18,10 @@ def _data_checker(self):
 
     for col in self.weight_eligible_colnames:
         if col is not None:
+            if col not in self.data.columns:
+                raise ValueError(
+                    f"weight_eligible_colnames entry '{col}' not found in data columns."
+                )
             _check_binary(self.data, col)
 
     check = self.data.group_by(self.id_col).agg(
