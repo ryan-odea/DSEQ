@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 
 from ._fix_categories import _fix_categories_for_predict
