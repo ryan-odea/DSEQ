@@ -1,5 +1,6 @@
 import copy
 import time
+import warnings
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from functools import wraps
 
@@ -103,7 +104,7 @@ def bootstrap_loop(method):
                 self.DT = None
 
                 with ProcessPoolExecutor(max_workers=ncores) as executor:
-                    futures = [
+                    futures = {
                         executor.submit(
                             _bootstrap_worker,
                             self,
@@ -113,13 +114,24 @@ def bootstrap_loop(method):
                             seed,
                             args,
                             kwargs,
-                        )
+                        ): i
                         for i in range(nboot)
-                    ]
+                    }
+                    skipped = 0
                     for j in tqdm(
                         as_completed(futures), total=nboot, desc="Bootstrapping..."
                     ):
-                        results.append(j.result())
+                        boot_idx = futures[j]
+                        try:
+                            results.append(j.result())
+                        except np.linalg.LinAlgError as e:
+                            skipped += 1
+                            warnings.warn(
+                                f"Bootstrap iteration {boot_idx + 1} failed "
+                                f"({e}); skipping replicate.",
+                                UserWarning,
+                                stacklevel=2,
+                            )
 
                 self._rng = original_rng
                 self.DT = self._offloader.load_dataframe(original_DT_ref)
@@ -131,6 +143,7 @@ def bootstrap_loop(method):
                 else:
                     original_DT_ref = original_DT
 
+                skipped = 0
                 for i in tqdm(range(nboot), desc="Bootstrapping..."):
                     self._current_boot_idx = i + 1
                     if seed is not None:
@@ -140,11 +153,29 @@ def bootstrap_loop(method):
                     if self._offloader.enabled:
                         del tmp
                     self.bootstrap_nboot = 0
-                    boot_fit = method(self, *args, **kwargs)
-                    results.append(boot_fit)
+                    try:
+                        boot_fit = method(self, *args, **kwargs)
+                        results.append(boot_fit)
+                    except np.linalg.LinAlgError as e:
+                        skipped += 1
+                        warnings.warn(
+                            f"Bootstrap iteration {i + 1} failed "
+                            f"({e}); skipping replicate.",
+                            UserWarning,
+                            stacklevel=2,
+                        )
 
-                self.bootstrap_nboot = nboot
                 self.DT = self._offloader.load_dataframe(original_DT_ref)
+
+            self.bootstrap_nboot = len(results) - 1
+            if skipped > 0:
+                warnings.warn(
+                    f"{skipped} of {nboot} bootstrap replicate(s) skipped due to "
+                    "singular Hessian; effective bootstrap_nboot is "
+                    f"{self.bootstrap_nboot}.",
+                    UserWarning,
+                    stacklevel=2,
+                )
 
             end = time.perf_counter()
             self._model_time = _format_time(start, end)
