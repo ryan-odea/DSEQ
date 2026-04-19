@@ -89,10 +89,14 @@ def _binder(self, kept_cols):
         for c in baseline_cols
     ]
 
+    to_drop = [f"{self.eligible_col}{self.indicator_baseline}"]
+    if self.eligible_col not in kept_cols:
+        to_drop.append(self.eligible_col)
+
     DT = (
         DT.with_columns(bas)
         .filter(pl.col(f"{self.eligible_col}{self.indicator_baseline}") == 1)
-        .drop([f"{self.eligible_col}{self.indicator_baseline}", self.eligible_col])
+        .drop(to_drop)
     )
 
     # Truncate each (id, trial) at the first outcome event so that subjects who
