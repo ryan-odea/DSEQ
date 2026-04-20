@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pySEQTarget"
-version = "0.12.9"
+version = "0.13.0"
 description = "Sequentially Nested Target Trial Emulation"
 readme = "README.md"
 license = {text = "MIT"}
@@ -83,3 +83,6 @@ SEQdata = ["data/*.csv"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+filterwarnings = [
+    "ignore:FigureCanvasAgg is non-interactive:UserWarning",
+]

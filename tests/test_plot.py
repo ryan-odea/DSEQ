@@ -7,8 +7,8 @@ import pytest
 
 matplotlib.use("Agg")  # non-interactive backend — no windows opened
 
-from pySEQTarget import SEQopts, SEQuential
-from pySEQTarget.data import load_data
+from pySEQTarget import SEQopts, SEQuential  # noqa: E402
+from pySEQTarget.data import load_data  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
