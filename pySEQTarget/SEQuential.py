@@ -107,9 +107,11 @@ class SEQuential:
         _param_checker(self)
         _data_checker(self)
 
-    def expand(self) -> None:
+    def expand(self):
         """
-        Creates the sequentially nested, emulated target trial structure
+        Creates the sequentially nested, emulated target trial structure.
+        If ``expand_only`` is set in parameters, returns the expanded dataset as a
+        :class:`polars.DataFrame` and skips all subsequent analysis steps.
         """
         start = time.perf_counter()
         kept = [
@@ -168,6 +170,9 @@ class SEQuential:
 
         end = time.perf_counter()
         self._expansion_time = _format_time(start, end)
+
+        if self.expand_only:
+            return self.DT
 
     def bootstrap(self, **kwargs) -> None:
         """
