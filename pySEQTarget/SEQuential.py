@@ -107,9 +107,11 @@ class SEQuential:
         _param_checker(self)
         _data_checker(self)
 
-    def expand(self) -> None:
+    def expand(self):
         """
-        Creates the sequentially nested, emulated target trial structure
+        Creates the sequentially nested, emulated target trial structure.
+        If ``expand_only`` is set in parameters, returns the expanded dataset as a
+        :class:`polars.DataFrame` and skips all subsequent analysis steps.
         """
         start = time.perf_counter()
         kept = [
@@ -160,7 +162,7 @@ class SEQuential:
             pl.col(self.id_col).cast(pl.Utf8).alias(self.id_col)
         )
 
-        if self.method != "ITT":
+        if self.method == "dose-response" or (self.method == "censoring" and not self.expand_only):
             _dynamic(self)
         if self.selection_random:
             _random_selection(self)
@@ -168,6 +170,9 @@ class SEQuential:
 
         end = time.perf_counter()
         self._expansion_time = _format_time(start, end)
+
+        if self.expand_only:
+            return self.DT
 
     def bootstrap(self, **kwargs) -> None:
         """

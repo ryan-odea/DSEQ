@@ -36,6 +36,9 @@ class SEQopts:
     :type excused: bool
     :param excused_colnames: Column names (at the same length of treatment_level) specifying excused conditions, default ``[]``
     :type excused_colnames: List[str]
+    :param expand_only: If True, ``SEQuential.expand()`` returns the expanded dataset and skips weighting,
+        modelling, and survival steps
+    :type expand_only: bool
     :param followup_class: Boolean to force followup values to be treated as classes
     :type followup_class: bool
     :param followup_include: Boolean to force regular followup values into model covariates
@@ -121,6 +124,7 @@ class SEQopts:
     denominator: Optional[str] = None
     excused: bool = False
     excused_colnames: List[str] = field(default_factory=lambda: [])
+    expand_only: bool = False
     followup_class: bool = False
     followup_include: bool = True
     followup_max: int = None
@@ -161,6 +165,7 @@ class SEQopts:
     def _validate_bools(self):
         bools = [
             "excused",
+            "expand_only",
             "followup_class",
             "followup_include",
             "followup_spline",

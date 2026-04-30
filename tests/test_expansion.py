@@ -1,6 +1,7 @@
 import polars as pl
+from polars.testing import assert_frame_equal
 
-from pySEQTarget import SEQuential
+from pySEQTarget import SEQopts, SEQuential
 
 
 def _make_model(data):
@@ -90,3 +91,38 @@ def test_expansion_truncates_each_trial_independently():
 
     # Trial 1 starts at time=1, outcome at time=3 → followup 0,1,2
     assert sorted(trial_1["followup"].to_list()) == [0, 1, 2]
+
+
+def test_expand_only_returns_expanded_dataframe():
+    """expand_only=True should return the expanded DataFrame directly and the
+    return value should equal self.DT from a standard expand() call."""
+    data = pl.DataFrame(
+        {
+            "ID": [1, 1, 1, 1, 1],
+            "time": [0, 1, 2, 3, 4],
+            "eligible": [1, 0, 0, 0, 0],
+            "treatment": [0, 1, 0, 1, 0],
+            "outcome": [0, 0, 0, 0, 0],
+        }
+    )
+
+    model_only = SEQuential(
+        data,
+        id_col="ID",
+        time_col="time",
+        eligible_col="eligible",
+        treatment_col="treatment",
+        outcome_col="outcome",
+        time_varying_cols=[],
+        fixed_cols=[],
+        parameters=SEQopts(expand_only=True),
+    )
+    result = model_only.expand()
+
+    assert isinstance(result, pl.DataFrame)
+    assert_frame_equal(result, model_only.DT)
+
+    model_full = _make_model(data)
+    model_full.expand()
+
+    assert_frame_equal(result, model_full.DT)
