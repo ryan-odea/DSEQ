@@ -162,7 +162,9 @@ class SEQuential:
             pl.col(self.id_col).cast(pl.Utf8).alias(self.id_col)
         )
 
-        if self.method == "dose-response" or (self.method == "censoring" and not self.expand_only):
+        if self.method == "dose-response" or (
+            self.method == "censoring" and not self.expand_only
+        ):
             _dynamic(self)
         if self.selection_random:
             _random_selection(self)
