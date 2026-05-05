@@ -34,8 +34,8 @@ def _apply_spline_formula(formula, indicator_squared, spline_knots):
     formula = re.sub(r"^\s*\+\s*|\s*\+\s*$", "", formula).strip()
 
     if formula:
-        return f"{formula} + I({spline}**2)"
-    return f"I({spline}**2)"
+        return f"{formula} + {spline}"
+    return spline
 
 
 def _cast_categories(self, df_pd):
