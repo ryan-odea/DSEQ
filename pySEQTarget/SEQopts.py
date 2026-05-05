@@ -45,6 +45,8 @@ class SEQopts:
     :type followup_include: bool
     :param followup_spline: Boolean to force followup values to be fit to cubic spline
     :type followup_spline: bool
+    :param followup_spline_df: Degrees of freedom for the followup cubic spline, default ``4``
+    :type followup_spline_df: int
     :param followup_max: Maximum allowed followup in analysis
     :type followup_max: int or None
     :param followup_min: Minimum allowed followup in analysis
@@ -130,6 +132,7 @@ class SEQopts:
     followup_max: int = None
     followup_min: int = 0
     followup_spline: bool = False
+    followup_spline_df: int = 4
     hazard_estimate: bool = False
     indicator_baseline: str = "_bas"
     indicator_squared: str = "_sq"

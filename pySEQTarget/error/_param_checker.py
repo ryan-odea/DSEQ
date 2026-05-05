@@ -44,6 +44,9 @@ def _param_checker(self):
             "Only one of followup_class or followup_include can be set to True."
         )
 
+    if self.followup_spline_df < 2:
+        raise ValueError("followup_spline_df must be at least 2.")
+
     if (
         self.weighted
         and self.method == "ITT"
