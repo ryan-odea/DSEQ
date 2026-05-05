@@ -81,6 +81,33 @@ my_output = my_analysis.collect()
 my_output.to_md()
 ```
 
+## Modelling Followup with a Natural Cubic Spline
+
+By default, followup time enters the outcome model as a linear and quadratic term (`followup` and `followup_sq`). If you prefer a more flexible non-linear representation, you can replace these with a natural cubic spline basis by setting `followup_spline=True`. Because the spline replaces the standard followup terms, you must also set `followup_include=False` to avoid conflicting specifications.
+
+```python
+my_options = SEQopts(
+    followup_spline=True,
+    followup_include=False,
+    km_curves=True,
+)
+```
+
+The spline basis is constructed using patsy's `cr()` function. Knot positions are computed once from the full expanded dataset before any bootstrap resampling, and are held fixed across all bootstrap iterations and the survival prediction grid. This ensures the spline basis is identical at fit time and prediction time regardless of how the bootstrap sample happens to be distributed.
+
+The degrees of freedom for the spline are controlled by `followup_spline_df`, which defaults to `4` (matching the default in the R package SEQTaRget). Increasing this allows a more flexible curve; decreasing it towards the minimum of `2` produces a stiffer fit.
+
+```python
+my_options = SEQopts(
+    followup_spline=True,
+    followup_include=False,
+    followup_spline_df=6,   # more flexible spline
+    km_curves=True,
+)
+```
+
+The rest of the analytical pipeline is unchanged — `expand()`, `fit()`, `survival()`, and `collect()` all work exactly as before.
+
 ## That's it?
 
 Yes! There are very few differences between the code for more straightforward and more difficult analyses using this package. Our hope is that through utilizing almost only the SEQopts to work with your analysis, that this is a streamlined process that is also easy to manipulate.
