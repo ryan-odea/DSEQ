@@ -1,12 +1,28 @@
 import re
 
+import numpy as np
 import polars as pl
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
 
-def _apply_spline_formula(formula, indicator_squared):
-    spline = "cr(followup, df=3)"
+def _compute_spline_knots(followup_arr, df=3):
+    lower = float(np.min(followup_arr))
+    upper = float(np.max(followup_arr))
+    n_inner = df - 2
+    if n_inner == 0:
+        inner_knots = []
+    else:
+        # Replicate patsy's knot placement: percentiles of unique values in [lower, upper]
+        x = np.unique(followup_arr[(lower <= followup_arr) & (followup_arr <= upper)])
+        q = np.linspace(0, 100, n_inner + 2)[1:-1]
+        inner_knots = np.percentile(x, q.tolist()).tolist()
+    return inner_knots, lower, upper
+
+
+def _apply_spline_formula(formula, indicator_squared, spline_knots):
+    inner_knots, lower, upper = spline_knots
+    spline = f"cr(followup, knots={inner_knots}, lower_bound={lower}, upper_bound={upper})"
 
     formula = re.sub(r"(\w+)\s*\*\s*followup\b", rf"\1*{spline}", formula)
     formula = re.sub(r"\bfollowup\s*\*\s*(\w+)", rf"{spline}*\1", formula)
@@ -64,7 +80,13 @@ def _outcome_fit(
     df_pd = _cast_categories(self, df.to_pandas())
 
     if self.followup_spline:
-        formula = _apply_spline_formula(formula, self.indicator_squared)
+        if getattr(self, "_current_boot_idx", None) is None:
+            self._followup_spline_knots = _compute_spline_knots(
+                self.DT["followup"].to_numpy()
+            )
+        formula = _apply_spline_formula(
+            formula, self.indicator_squared, self._followup_spline_knots
+        )
 
     full_formula = f"{outcome} ~ {formula}"
 
