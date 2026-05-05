@@ -22,7 +22,9 @@ def _compute_spline_knots(followup_arr, df=3):
 
 def _apply_spline_formula(formula, indicator_squared, spline_knots):
     inner_knots, lower, upper = spline_knots
-    spline = f"cr(followup, knots={inner_knots}, lower_bound={lower}, upper_bound={upper})"
+    spline = (
+        f"cr(followup, knots={inner_knots}, lower_bound={lower}, upper_bound={upper})"
+    )
 
     formula = re.sub(r"(\w+)\s*\*\s*followup\b", rf"\1*{spline}", formula)
     formula = re.sub(r"\bfollowup\s*\*\s*(\w+)", rf"{spline}*\1", formula)
