@@ -82,7 +82,7 @@ def _outcome_fit(
     if self.followup_spline:
         if getattr(self, "_current_boot_idx", None) is None:
             self._followup_spline_knots = _compute_spline_knots(
-                self.DT["followup"].to_numpy()
+                self.DT["followup"].to_numpy(), df=self.followup_spline_df
             )
         formula = _apply_spline_formula(
             formula, self.indicator_squared, self._followup_spline_knots
