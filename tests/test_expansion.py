@@ -2,6 +2,7 @@ import polars as pl
 from polars.testing import assert_frame_equal
 
 from pySEQTarget import SEQopts, SEQuential
+from pySEQTarget.data import load_data
 
 
 def _make_model(data):
@@ -126,3 +127,59 @@ def test_expand_only_returns_expanded_dataframe():
     model_full.expand()
 
     assert_frame_equal(result, model_full.DT)
+
+
+def _make_verbose_model(verbose, **extra_opts):
+    data = load_data("SEQdata")
+    return SEQuential(
+        data,
+        id_col="ID",
+        time_col="time",
+        eligible_col="eligible",
+        treatment_col="tx_init",
+        outcome_col="outcome",
+        time_varying_cols=["N", "L", "P"],
+        fixed_cols=["sex"],
+        method="ITT",
+        parameters=SEQopts(verbose=verbose, **extra_opts),
+    )
+
+
+def test_verbose_expand(capsys):
+    s = _make_verbose_model(verbose=True)
+    s.expand()
+    out = capsys.readouterr().out
+    assert "Full dataset:" in out
+    assert "Eligible observations:" in out
+    assert "Expanded dataset:" in out
+    assert "Final analysis dataset:" in out
+    assert "Sampled expanded dataset:" not in out
+    assert "observations" in out
+    assert "variables" in out
+
+
+def test_verbose_expand_with_sampling(capsys):
+    s = _make_verbose_model(verbose=True, selection_random=True, selection_sample=0.5)
+    s.expand()
+    out = capsys.readouterr().out
+    assert "Sampled expanded dataset:" in out
+
+
+def test_verbose_bootstrap(capsys):
+    s = _make_verbose_model(verbose=True, bootstrap_nboot=10)
+    s.expand()
+    capsys.readouterr()
+    s.bootstrap()
+    out = capsys.readouterr().out
+    assert "Bootstrapping" in out
+    assert "subjects" in out
+    assert "observations per resample" in out
+    assert "10 times" in out
+
+
+def test_verbose_false_no_output(capsys):
+    s = _make_verbose_model(verbose=False, bootstrap_nboot=5)
+    s.expand()
+    s.bootstrap()
+    out = capsys.readouterr().out
+    assert out == ""
