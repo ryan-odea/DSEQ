@@ -109,6 +109,8 @@ class SEQopts:
     :type weight_p99: bool
     :param weight_preexpansion: Boolean to fit weights on preexpanded data
     :type weight_preexpansion: bool
+    :param verbose: Boolean to print dataset size summaries and bootstrap information
+    :type verbose: bool
     :param weighted: Boolean to weight analysis
     :type weighted: bool
     """
@@ -163,6 +165,7 @@ class SEQopts:
     weight_lag_condition: bool = True
     weight_p99: bool = False
     weight_preexpansion: bool = True
+    verbose: bool = False
     weighted: bool = False
 
     def _validate_bools(self):
@@ -178,6 +181,7 @@ class SEQopts:
             "selection_first_trial",
             "selection_random",
             "trial_include",
+            "verbose",
             "weight_lag_condition",
             "weight_p99",
             "weight_preexpansion",

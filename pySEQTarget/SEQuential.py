@@ -114,6 +114,13 @@ class SEQuential:
         :class:`polars.DataFrame` and skips all subsequent analysis steps.
         """
         start = time.perf_counter()
+
+        if self.verbose:
+            n, m = self.data.shape
+            print(f"Full dataset: {n:,} observations, {m} variables")
+            n_elig = self.data.filter(pl.col(self.eligible_col) == 1).shape[0]
+            print(f"Eligible observations: {n_elig:,}")
+
         kept = [
             self.cense_colname,
             self.cense_eligible_colname,
@@ -162,13 +169,24 @@ class SEQuential:
             pl.col(self.id_col).cast(pl.Utf8).alias(self.id_col)
         )
 
+        if self.verbose:
+            n, m = self.DT.shape
+            print(f"Expanded dataset: {n:,} observations, {m} variables")
+
         if self.method == "dose-response" or (
             self.method == "censoring" and not self.expand_only
         ):
             _dynamic(self)
         if self.selection_random:
             _random_selection(self)
+            if self.verbose:
+                n, m = self.DT.shape
+                print(f"Sampled expanded dataset: {n:,} observations, {m} variables")
         _diagnostics(self)
+
+        if self.verbose:
+            n, m = self.DT.shape
+            print(f"Final analysis dataset: {n:,} observations, {m} variables")
 
         end = time.perf_counter()
         self._expansion_time = _format_time(start, end)
@@ -199,6 +217,16 @@ class SEQuential:
             .to_list()
         )
         NIDs = len(UIDs)
+
+        if self.verbose:
+            n_sample = round(self.bootstrap_sample * NIDs)
+            n_obs_sample = round(self.bootstrap_sample * len(self.DT))
+            print(
+                f"Bootstrapping with {self.bootstrap_sample * 100:.4g}% of "
+                f"{NIDs:,} subjects "
+                f"({n_sample:,} subjects, ~{n_obs_sample:,} observations per resample) "
+                f"{self.bootstrap_nboot} times"
+            )
 
         self._boot_samples = []
         for _ in range(self.bootstrap_nboot):
