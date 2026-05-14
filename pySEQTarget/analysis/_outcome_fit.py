@@ -104,10 +104,22 @@ def _outcome_fit(
 
     model = smf.glm(**glm_kwargs)
 
-    # Drop warm-start coefs if the design matrix column count doesn't match
-    # (e.g. categorical level dropped or added in a bootstrap resample).
-    if start_params is not None and len(start_params) != model.exog.shape[1]:
-        start_params = None
+    # Drop warm-start coefs unless the design matrix columns match exactly
+    # by name — bootstrap resamples can shift categorical reference levels or
+    # column ordering, in which case the cached coefs are meaningless and
+    # IRLS can diverge into NaN/Inf and crash LAPACK.
+    if start_params is not None:
+        sp_values, sp_names = start_params
+        if list(model.exog_names) != list(sp_names):
+            start_params = None
+        else:
+            start_params = sp_values
 
-    model_fit = model.fit(start_params=start_params)
+    try:
+        model_fit = model.fit(start_params=start_params)
+    except Exception:
+        if start_params is not None:
+            model_fit = model.fit()
+        else:
+            raise
     return model_fit

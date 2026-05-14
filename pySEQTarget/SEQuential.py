@@ -279,7 +279,10 @@ class SEQuential:
             models_list = _subgroup_fit(self, start_params=start)
             if not is_boot:
                 self._outcome_start_params = {
-                    val: {key: m.params.values for key, m in sg.items()}
+                    val: {
+                        key: (m.params.values, list(m.model.exog_names))
+                        for key, m in sg.items()
+                    }
                     for val, sg in zip(self._unique_subgroups, models_list)
                 }
             return models_list
@@ -310,7 +313,10 @@ class SEQuential:
             )
 
         if not is_boot:
-            self._outcome_start_params = {k: m.params.values for k, m in models.items()}
+            self._outcome_start_params = {
+                k: (m.params.values, list(m.model.exog_names))
+                for k, m in models.items()
+            }
 
         if self.offload:
             offloaded_models = {}
