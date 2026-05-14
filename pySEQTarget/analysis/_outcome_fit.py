@@ -68,6 +68,7 @@ def _outcome_fit(
     formula: str,
     weighted: bool = False,
     weight_col: str = "weight",
+    start_params=None,
 ):
     if weighted:
         df = df.with_columns(
@@ -102,5 +103,11 @@ def _outcome_fit(
         glm_kwargs["var_weights"] = df_pd[weight_col]
 
     model = smf.glm(**glm_kwargs)
-    model_fit = model.fit()
+
+    # Drop warm-start coefs if the design matrix column count doesn't match
+    # (e.g. categorical level dropped or added in a bootstrap resample).
+    if start_params is not None and len(start_params) != model.exog.shape[1]:
+        start_params = None
+
+    model_fit = model.fit(start_params=start_params)
     return model_fit

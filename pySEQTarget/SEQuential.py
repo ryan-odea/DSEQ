@@ -272,8 +272,20 @@ class SEQuential:
             _weight_bind(self, WDT)
             self.weight_stats = _weight_stats(self)
 
+        is_boot = boot_idx is not None
+        start = getattr(self, "_outcome_start_params", None) if is_boot else None
+
         if self.subgroup_colname is not None:
-            return _subgroup_fit(self)
+            models_list = _subgroup_fit(self, start_params=start)
+            if not is_boot:
+                self._outcome_start_params = {
+                    val: {key: m.params.values for key, m in sg.items()}
+                    for val, sg in zip(self._unique_subgroups, models_list)
+                }
+            return models_list
+
+        start_outcome = (start or {}).get("outcome")
+        start_compevent = (start or {}).get("compevent")
 
         models = {
             "outcome": _outcome_fit(
@@ -283,6 +295,7 @@ class SEQuential:
                 self.covariates,
                 self.weighted,
                 "weight",
+                start_params=start_outcome,
             )
         }
         if self.compevent_colname is not None:
@@ -293,7 +306,14 @@ class SEQuential:
                 self.covariates,
                 self.weighted,
                 "weight",
+                start_params=start_compevent,
             )
+
+        if not is_boot:
+            self._outcome_start_params = {
+                k: m.params.values for k, m in models.items()
+            }
+
         if self.offload:
             offloaded_models = {}
             for key, model in models.items():
