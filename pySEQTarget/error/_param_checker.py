@@ -1,3 +1,5 @@
+import warnings
+
 from ..helpers import _pad
 
 
@@ -26,13 +28,13 @@ def _param_checker(self):
 
     if len(self.excused_colnames) == 0 and self.excused:
         self.excused = False
-        raise Warning(
+        warnings.warn(
             "Excused column names not provided but excused is set to True. Automatically set excused to False"
         )
 
     if len(self.excused_colnames) > 0 and not self.excused:
         self.excused = True
-        raise Warning(
+        warnings.warn(
             "Excused column names provided but excused is set to False. Automatically set excused to True"
         )
 
