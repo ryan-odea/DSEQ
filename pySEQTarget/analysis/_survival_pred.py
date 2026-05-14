@@ -38,11 +38,13 @@ def _build_design_matrix(design_info, data):
     except PatsyError as e:
         if "mismatching levels" not in str(e):
             raise
+
         # Reuse the existing fix by wrapping design_info in a stub object
         class _Stub:
             class model:
                 class data:
                     pass
+
         stub = _Stub()
         stub.model.data.design_info = design_info
         fixed = _fix_categories_for_predict(stub, data.copy())
