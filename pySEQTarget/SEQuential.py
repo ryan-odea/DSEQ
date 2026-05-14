@@ -310,9 +310,7 @@ class SEQuential:
             )
 
         if not is_boot:
-            self._outcome_start_params = {
-                k: m.params.values for k, m in models.items()
-            }
+            self._outcome_start_params = {k: m.params.values for k, m in models.items()}
 
         if self.offload:
             offloaded_models = {}
