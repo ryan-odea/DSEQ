@@ -5,7 +5,7 @@ from ._mapper import _mapper
 
 def _binder(self, kept_cols):
     """
-    Internal function to bind data to the map created by __mapper
+    Internal function to bind data to the map created by _mapper
     """
     excluded = {
         "dose",

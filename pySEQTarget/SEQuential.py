@@ -384,7 +384,7 @@ class SEQuential:
 
     def collect(self) -> SEQoutput:
         """
-        Collects all results current created into ``SEQoutput`` class
+        Collects all results currently created into ``SEQoutput`` class
         """
         self._time_collected = datetime.datetime.now()
 

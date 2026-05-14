@@ -62,7 +62,7 @@ class SEQoutput:
 
     def plot(self) -> None:
         """
-        Displays the kaplan-meier graph
+        Displays the Kaplan-Meier graph
         """
         if self.km_graph is None:
             raise ValueError(

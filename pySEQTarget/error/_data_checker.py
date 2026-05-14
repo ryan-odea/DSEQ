@@ -31,8 +31,8 @@ def _data_checker(self):
     invalid = check.filter(pl.col("row_count") != pl.col("max_time") + 1)
     if len(invalid) > 0:
         raise ValueError(
-            f"Data validation failed: {len(invalid)} ID(s) have mismatched "
-            f"This suggests invalid times"
+            f"Data validation failed: {len(invalid)} ID(s) have mismatched row counts. "
+            f"This suggests invalid times. "
             f"Invalid IDs:\n{invalid}"
         )
 

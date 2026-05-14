@@ -15,7 +15,7 @@ class SEQopts:
     :type bootstrap_sample: float
     :param bootstrap_CI: If bootstrapped, confidence interval level
     :type bootstrap_CI: float
-    :param bootstrap_CI_method: If bootstrapped, confidence method generation method ['SE' or 'percentile']
+    :param bootstrap_CI_method: If bootstrapped, confidence interval method ['SE' or 'percentile']
     :type bootstrap_CI_method: str
     :param cense_colname: Column name for censoring effect (LTFU, etc.)
     :type cense_colname: str

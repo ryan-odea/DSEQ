@@ -3,7 +3,7 @@ import polars as pl
 
 def _dynamic(self):
     """
-    Handles special cases for the data from the __mapper -> __binder pipeline
+    Handles special cases for the data from the _mapper -> _binder pipeline
     """
     if self.method == "dose-response":
         DT = self.DT.with_columns(
