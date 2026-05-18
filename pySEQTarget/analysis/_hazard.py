@@ -182,7 +182,7 @@ def _hazard_handler(self, data, idx, boot_idx, rng):
     sim_data_pd = sim_data.to_pandas()
 
     try:
-        # COXPHFITER CURRENTLY HAS DEPRECATED datetime.datetime.utcnow()
+        # COXPHFITTER CURRENTLY HAS DEPRECATED datetime.datetime.utcnow()
         warnings.filterwarnings("ignore", message=".*datetime.datetime.utcnow.*")
         if ce_model is not None:
             cox_data = sim_data_pd[sim_data_pd["event"].isin([0, 1])].copy()

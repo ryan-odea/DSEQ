@@ -15,7 +15,7 @@ class SEQopts:
     :type bootstrap_sample: float
     :param bootstrap_CI: If bootstrapped, confidence interval level
     :type bootstrap_CI: float
-    :param bootstrap_CI_method: If bootstrapped, confidence method generation method ['SE' or 'percentile']
+    :param bootstrap_CI_method: If bootstrapped, confidence interval method ['SE' or 'percentile']
     :type bootstrap_CI_method: str
     :param cense_colname: Column name for censoring effect (LTFU, etc.)
     :type cense_colname: str
@@ -109,6 +109,8 @@ class SEQopts:
     :type weight_p99: bool
     :param weight_preexpansion: Boolean to fit weights on preexpanded data
     :type weight_preexpansion: bool
+    :param verbose: Boolean to print dataset size summaries and bootstrap information
+    :type verbose: bool
     :param weighted: Boolean to weight analysis
     :type weighted: bool
     """
@@ -163,6 +165,7 @@ class SEQopts:
     weight_lag_condition: bool = True
     weight_p99: bool = False
     weight_preexpansion: bool = True
+    verbose: bool = False
     weighted: bool = False
 
     def _validate_bools(self):
@@ -178,6 +181,7 @@ class SEQopts:
             "selection_first_trial",
             "selection_random",
             "trial_include",
+            "verbose",
             "weight_lag_condition",
             "weight_p99",
             "weight_preexpansion",

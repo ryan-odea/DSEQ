@@ -68,6 +68,7 @@ def _outcome_fit(
     formula: str,
     weighted: bool = False,
     weight_col: str = "weight",
+    start_params=None,
 ):
     if weighted:
         df = df.with_columns(
@@ -102,5 +103,23 @@ def _outcome_fit(
         glm_kwargs["var_weights"] = df_pd[weight_col]
 
     model = smf.glm(**glm_kwargs)
-    model_fit = model.fit()
+
+    # Drop warm-start coefs unless the design matrix columns match exactly
+    # by name — bootstrap resamples can shift categorical reference levels or
+    # column ordering, in which case the cached coefs are meaningless and
+    # IRLS can diverge into NaN/Inf and crash LAPACK.
+    if start_params is not None:
+        sp_values, sp_names = start_params
+        if list(model.exog_names) != list(sp_names):
+            start_params = None
+        else:
+            start_params = sp_values
+
+    try:
+        model_fit = model.fit(start_params=start_params)
+    except Exception:
+        if start_params is not None:
+            model_fit = model.fit()
+        else:
+            raise
     return model_fit
