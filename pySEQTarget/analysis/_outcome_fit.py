@@ -1,9 +1,11 @@
 import re
 
 import numpy as np
+import pandas as pd
 import polars as pl
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
+from pandas.api.types import is_numeric_dtype
 
 
 def _compute_spline_knots(followup_arr, df=3):
@@ -40,6 +42,20 @@ def _apply_spline_formula(formula, indicator_squared, spline_knots):
     return spline
 
 
+def _categorical_tv_columns(self, df_pd):
+    """
+    Names of the categorical (non-numeric) time-varying covariate columns
+    present in ``df_pd``, including their baseline (``indicator_baseline``)
+    versions used by the outcome model.
+    """
+    cols = []
+    for col in self.time_varying_cols or []:
+        for variant in (col, f"{col}{self.indicator_baseline}"):
+            if variant in df_pd.columns and not is_numeric_dtype(df_pd[variant]):
+                cols.append(variant)
+    return cols
+
+
 def _cast_categories(self, df_pd):
     if self.treatment_col in df_pd.columns:
         df_pd[self.treatment_col] = df_pd[self.treatment_col].astype("category")
@@ -57,6 +73,22 @@ def _cast_categories(self, df_pd):
         for col in self.fixed_cols:
             if col in df_pd.columns:
                 df_pd[col] = df_pd[col].astype("category")
+
+    # Stable factor encoding for categorical time-varying covariates: fix the
+    # level set from the full expanded data (captured on the non-bootstrap
+    # pass) so a bootstrap resample cannot realise a different set of levels —
+    # otherwise a level absent from the resample would be unknown to that fit
+    # and crash counterfactual prediction with NaNs.
+    tv_cat_cols = _categorical_tv_columns(self, df_pd)
+    if getattr(self, "_current_boot_idx", None) is None:
+        cats = getattr(self, "_covariate_categories", {})
+        for col in tv_cat_cols:
+            cats[col] = sorted(df_pd[col].dropna().unique().tolist())
+        self._covariate_categories = cats
+    cats = getattr(self, "_covariate_categories", {})
+    for col in tv_cat_cols:
+        if col in cats:
+            df_pd[col] = pd.Categorical(df_pd[col], categories=cats[col])
 
     return df_pd
 
