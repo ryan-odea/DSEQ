@@ -78,6 +78,10 @@ class SEQopts:
     :type plot_title: str
     :param plot_type: Type of plot to show ["risk", "survival" or "incidence" if compevent is specified]
     :type plot_type: str
+    :param risk_times: Followup times at which to report risk difference and risk ratio when ``km_curves = True``.
+        Each requested time is snapped to the latest available followup at or before it, and the maximum
+        followup is always included. Defaults to ``None`` (report at the maximum followup only).
+    :type risk_times: Optional[List[float]] or None
     :param seed: RNG seed
     :type seed: int
     :param selection_first_trial: Boolean to only use first trial for analysis (similar to non-expanded)
@@ -150,6 +154,7 @@ class SEQopts:
     plot_labels: List[str] = field(default_factory=lambda: [])
     plot_title: str = None
     plot_type: Literal["risk", "survival", "incidence"] = "survival"
+    risk_times: Optional[List[float]] = None
     seed: Optional[int] = None
     selection_first_trial: bool = False
     selection_sample: float = 0.8
@@ -210,6 +215,14 @@ class SEQopts:
             raise ValueError(
                 f"followup_min ({self.followup_min}) must be less than followup_max ({self.followup_max})."
             )
+        if self.risk_times is not None:
+            times = (
+                self.risk_times
+                if isinstance(self.risk_times, (list, tuple))
+                else [self.risk_times]
+            )
+            if any(not isinstance(t, (int, float)) or t < 0 for t in times):
+                raise ValueError("risk_times values must be non-negative numbers.")
 
     def _validate_choices(self):
         if self.plot_type not in ["risk", "survival", "incidence"]:
