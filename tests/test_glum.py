@@ -82,6 +82,36 @@ def test_glum_LTFU_runs():
     assert s.cense_denominator_model is not None
 
 
+def test_glum_summary_is_printable_and_consistent():
+    # SEQoutput.summary() calls model.summary(); the glum wrapper must support
+    # it (regression for the short-course render). tables[1] should be the coef
+    # table, matching statsmodels' summary2 layout.
+    s = _fit("ITT", "glum")
+    model = s.outcome_model[0]["outcome"]
+
+    smry = model.summary()
+    assert str(smry)  # renders without error
+
+    coef_col = model.summary2().tables[1]["Coef."].to_list()
+    assert coef_col == approx(list(model.params), rel=1e-9, abs=1e-9)
+
+
+def test_glum_standard_errors_match_statsmodels():
+    sm_model = _fit("ITT", "statsmodels").outcome_model[0]["outcome"]
+    gl_model = _fit("ITT", "glum").outcome_model[0]["outcome"]
+    assert list(gl_model.bse) == approx(list(sm_model.bse), rel=1e-2, abs=1e-3)
+
+
+def test_glum_summary_via_seqoutput():
+    # Mirrors the short-course usage: results.summary("numerator"/"outcome").
+    s = _fit("censoring", "glum", weighted=True, weight_preexpansion=True)
+    out = s.collect()
+    for kind in ("numerator", "denominator", "outcome"):
+        summaries = out.summary(kind)
+        assert len(summaries) >= 1
+        assert all(str(sm) for sm in summaries)
+
+
 def test_glum_bootstrap_survival_matches_statsmodels():
     # Exercises the prediction-caching path in _survival_pred (transform=False
     # and .model.data.design_info on the glum wrapper) and confirms the point
