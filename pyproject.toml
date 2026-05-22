@@ -41,7 +41,8 @@ dependencies = [
     "matplotlib",
     "pyarrow",
     "lifelines",
-    "joblib"
+    "joblib",
+    "glum>=3.4.1",
 ]
 
 [project.optional-dependencies]
