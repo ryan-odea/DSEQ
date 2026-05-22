@@ -85,9 +85,7 @@ def test_hazard_survives_skipped_bootstrap_replicate(monkeypatch):
 
     def flaky_outcome_fit(seq_self, *args, **kwargs):
         if getattr(seq_self, "_current_boot_idx", None) == fail_on:
-            raise np.linalg.LinAlgError(
-                "A singular matrix detected: injected for test"
-            )
+            raise np.linalg.LinAlgError("A singular matrix detected: injected for test")
         return real_outcome_fit(seq_self, *args, **kwargs)
 
     monkeypatch.setattr(seqmod, "_outcome_fit", flaky_outcome_fit)

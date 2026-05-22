@@ -109,9 +109,13 @@ def _fit_numerator(self, WDT):
         if is_binary and getattr(self, "glm_package", "statsmodels") == "glum":
             model_fit = _fit_glum(formula, DT_subset)
         elif is_binary:
-            model_fit = smf.logit(formula, DT_subset).fit(disp=0, method=self.weight_fit_method)
+            model_fit = smf.logit(formula, DT_subset).fit(
+                disp=0, method=self.weight_fit_method
+            )
         else:
-            model_fit = smf.mnlogit(formula, DT_subset).fit(disp=0, method=self.weight_fit_method)
+            model_fit = smf.mnlogit(formula, DT_subset).fit(
+                disp=0, method=self.weight_fit_method
+            )
         _check_separation(model_fit, label=f"numerator (level {level})")
         fits.append(model_fit)
 
@@ -148,9 +152,13 @@ def _fit_denominator(self, WDT):
         if is_binary and getattr(self, "glm_package", "statsmodels") == "glum":
             model_fit = _fit_glum(formula, DT_subset)
         elif is_binary:
-            model_fit = smf.logit(formula, DT_subset).fit(disp=0, method=self.weight_fit_method)
+            model_fit = smf.logit(formula, DT_subset).fit(
+                disp=0, method=self.weight_fit_method
+            )
         else:
-            model_fit = smf.mnlogit(formula, DT_subset).fit(disp=0, method=self.weight_fit_method)
+            model_fit = smf.mnlogit(formula, DT_subset).fit(
+                disp=0, method=self.weight_fit_method
+            )
         _check_separation(model_fit, label=f"denominator (level {level})")
         fits.append(model_fit)
 
