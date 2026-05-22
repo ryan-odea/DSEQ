@@ -35,10 +35,17 @@ def _calculate_hazard_single(self, data, idx=None, val=None):
     if self.bootstrap_nboot > 0:
         boot_log_hrs = []
 
-        for boot_idx in range(len(self._boot_samples)):
+        # outcome_model[model_pos + 1] was fit on _boot_samples[sample_idx];
+        # skipped replicates make this mapping non-identity, so iterate it
+        # explicitly rather than assuming model index == sample index.
+        boot_sample_idx = getattr(self, "_boot_sample_idx", None)
+        if boot_sample_idx is None:
+            boot_sample_idx = list(range(len(self._boot_samples)))
+
+        for model_pos, sample_idx in enumerate(boot_sample_idx):
             if self.seed is not None:
-                self._rng = np.random.RandomState(self.seed + boot_idx + 1)
-            id_counts = self._boot_samples[boot_idx]
+                self._rng = np.random.RandomState(self.seed + sample_idx + 1)
+            id_counts = self._boot_samples[sample_idx]
 
             counts = pl.DataFrame(
                 {
@@ -55,7 +62,9 @@ def _calculate_hazard_single(self, data, idx=None, val=None):
                 .collect()
             )
 
-            boot_log_hr = _hazard_handler(self, boot_data, idx, boot_idx + 1, self._rng)
+            boot_log_hr = _hazard_handler(
+                self, boot_data, idx, model_pos + 1, self._rng
+            )
             if boot_log_hr is not None and not np.isnan(boot_log_hr):
                 boot_log_hrs.append(boot_log_hr)
 
