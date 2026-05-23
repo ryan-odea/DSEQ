@@ -129,6 +129,7 @@ class SEQopts:
     cense_eligible_colname: Optional[str] = None
     compevent_colname: Optional[str] = None
     covariates: Optional[str] = None
+    cox_package: Literal["lifelines", "scikit-survival"] = "lifelines"
     denominator: Optional[str] = None
     excused: bool = False
     excused_colnames: List[str] = field(default_factory=lambda: [])
@@ -234,6 +235,8 @@ class SEQopts:
             raise ValueError("bootstrap_CI_method must be one of 'se' or 'percentile'")
         if self.glm_package not in ["statsmodels", "glum"]:
             raise ValueError("glm_package must be 'statsmodels' or 'glum'")
+        if self.cox_package not in ["lifelines", "scikit-survival"]:
+            raise ValueError("cox_package must be 'lifelines' or 'scikit-survival'")
 
     def _normalize_formulas(self):
         for i in (

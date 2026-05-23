@@ -189,6 +189,7 @@ def _hazard_handler(self, data, idx, boot_idx, rng):
         sim_data = sim_data.with_columns([pl.col("outcome").alias("event")])
 
     sim_data_pd = sim_data.to_pandas()
+    tx_bas = f"{self.treatment_col}{self.indicator_baseline}"
 
     try:
         # COXPHFITTER CURRENTLY HAS DEPRECATED datetime.datetime.utcnow()
@@ -196,28 +197,39 @@ def _hazard_handler(self, data, idx, boot_idx, rng):
         if ce_model is not None:
             cox_data = sim_data_pd[sim_data_pd["event"].isin([0, 1])].copy()
             cox_data["event_binary"] = (cox_data["event"] == 1).astype(int)
-
-            cph = CoxPHFitter()
-            cph.fit(
-                cox_data,
-                duration_col="followup",
-                event_col="event_binary",
-                formula=f"`{self.treatment_col}{self.indicator_baseline}`",
-            )
-        else:
-            cph = CoxPHFitter()
-            cph.fit(
-                sim_data_pd,
-                duration_col="followup",
-                event_col="event",
-                formula=f"`{self.treatment_col}{self.indicator_baseline}`",
-            )
-
-        log_hr = cph.params_.values[0]
-        return log_hr
+            return _cox_log_hr(self, cox_data, "followup", "event_binary", tx_bas)
+        return _cox_log_hr(self, sim_data_pd, "followup", "event", tx_bas)
     except Exception as e:
         print(f"Cox model fitting failed: {e}")
         return None
+
+
+def _cox_log_hr(self, data_pd, duration_col, event_col, covariate_col):
+    """
+    Fit a univariate Cox model (single covariate = baseline treatment) and
+    return the log hazard ratio, dispatching on self.cox_package. scikit-survival
+    uses Efron tie handling to match lifelines, which matters here because
+    integer follow-up produces many tied event times.
+    """
+    if getattr(self, "cox_package", "lifelines") == "scikit-survival":
+        from sksurv.linear_model import CoxPHSurvivalAnalysis
+
+        y = np.empty(len(data_pd), dtype=[("event", bool), ("time", "float64")])
+        y["event"] = data_pd[event_col].to_numpy().astype(bool)
+        y["time"] = data_pd[duration_col].to_numpy().astype(float)
+        X = data_pd[[covariate_col]].to_numpy().astype(float)
+        cox = CoxPHSurvivalAnalysis(ties="efron")
+        cox.fit(X, y)
+        return float(cox.coef_[0])
+
+    cph = CoxPHFitter()
+    cph.fit(
+        data_pd,
+        duration_col=duration_col,
+        event_col=event_col,
+        formula=f"`{covariate_col}`",
+    )
+    return cph.params_.values[0]
 
 
 def _create_hazard_output(hr, lci, uci, val, self):

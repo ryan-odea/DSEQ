@@ -43,6 +43,7 @@ dependencies = [
     "lifelines",
     "joblib",
     "glum>=3.4.1",
+    "scikit-survival>=0.25.0",
 ]
 
 [project.optional-dependencies]
