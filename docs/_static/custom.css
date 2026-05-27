@@ -1,0 +1,8 @@
+/* Reduce the height of the piccolo_theme top navigation bar */
+:root {
+    --navbarHeight: 3.25rem;
+}
+
+div#top_nav nav {
+    padding: 0.7rem 1rem;
+}

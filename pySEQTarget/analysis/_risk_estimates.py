@@ -73,10 +73,42 @@ def _compute_rd_rr(comp, has_bootstrap, z=None, group_cols=None):
     return rd_comp, rr_comp
 
 
+def _resolve_risk_times(grid, risk_times):
+    """
+    Snap each requested risk time to the latest available followup at or before
+    it, always including the maximum followup. Returns a sorted list of followup
+    values that exist in ``grid``.
+    """
+    grid = sorted(set(grid))
+    final = grid[-1]
+
+    if risk_times is None:
+        return [final]
+
+    req = risk_times if isinstance(risk_times, (list, tuple)) else [risk_times]
+    req = [float(t) for t in req if t is not None]
+    if not req:
+        return [final]
+
+    above = [t for t in req if t > final]
+    if above:
+        raise ValueError(
+            f"risk_times value(s) exceed the maximum followup ({final}): {above}"
+        )
+    below = [t for t in req if t < grid[0]]
+    if below:
+        raise ValueError(
+            f"risk_times value(s) below the minimum followup ({grid[0]}): {below}"
+        )
+
+    snapped = [max(g for g in grid if g <= t) for t in req]
+    return sorted(set(snapped + [final]))
+
+
 def _risk_estimates(self):
-    last_followup = self.km_data["followup"].max()
-    risk = self.km_data.filter(
-        (pl.col("followup") == last_followup) & (pl.col("estimate") == "risk")
+    risk_all = self.km_data.filter(pl.col("estimate") == "risk")
+    report_times = _resolve_risk_times(
+        risk_all["followup"].unique().to_list(), self.risk_times
     )
 
     group_cols = [self.subgroup_colname] if self.subgroup_colname else []
@@ -101,115 +133,132 @@ def _risk_estimates(self):
         z = None
         alpha = None
 
-    risk_by_level = {}
-    for tx in self.treatment_level:
-        level_data = risk.filter(pl.col(self.treatment_col) == tx)
-        risk_by_level[tx] = {"pred": level_data.select(group_cols + ["pred"])}
-        if has_bootstrap and not use_paired:
-            risk_by_level[tx]["SE"] = level_data.select(group_cols + ["SE"])
-
     rd_comparisons = []
     rr_comparisons = []
 
-    for tx_x in self.treatment_level:
-        for tx_y in self.treatment_level:
-            if tx_x == tx_y:
-                continue
+    for followup_t in report_times:
+        risk = risk_all.filter(pl.col("followup") == followup_t)
 
-            if use_paired:
-                boot_x = (
-                    self._boot_risks[tx_x]
-                    .filter(pl.col("followup") == last_followup)
-                    .select(["boot_idx", pl.col("risk").alias("risk_x")])
-                )
-                boot_y = (
-                    self._boot_risks[tx_y]
-                    .filter(pl.col("followup") == last_followup)
-                    .select(["boot_idx", pl.col("risk").alias("risk_y")])
-                )
-                paired = boot_x.join(boot_y, on="boot_idx").with_columns(
-                    (pl.col("risk_x") - pl.col("risk_y")).alias("RD")
-                )
+        risk_by_level = {}
+        for tx in self.treatment_level:
+            level_data = risk.filter(pl.col(self.treatment_col) == tx)
+            risk_by_level[tx] = {"pred": level_data.select(group_cols + ["pred"])}
+            if has_bootstrap and not use_paired:
+                risk_by_level[tx]["SE"] = level_data.select(group_cols + ["SE"])
 
-                risk_x_val = float(risk_by_level[tx_x]["pred"]["pred"][0])
-                risk_y_val = float(risk_by_level[tx_y]["pred"]["pred"][0])
-                rd_point = risk_x_val - risk_y_val
-                rr_point = risk_x_val / risk_y_val if risk_y_val != 0 else float("inf")
+        for tx_x in self.treatment_level:
+            for tx_y in self.treatment_level:
+                if tx_x == tx_y:
+                    continue
 
-                # Filter degenerate RR bootstrap values (risk_y == 0 or negative)
-                valid_rr = paired.filter(
-                    (pl.col("risk_y") > 0) & (pl.col("risk_x") >= 0)
-                ).with_columns((pl.col("risk_x") / pl.col("risk_y")).alias("RR"))
+                if use_paired:
+                    boot_x = (
+                        self._boot_risks[tx_x]
+                        .filter(pl.col("followup") == followup_t)
+                        .select(["boot_idx", pl.col("risk").alias("risk_x")])
+                    )
+                    boot_y = (
+                        self._boot_risks[tx_y]
+                        .filter(pl.col("followup") == followup_t)
+                        .select(["boot_idx", pl.col("risk").alias("risk_y")])
+                    )
+                    paired = boot_x.join(boot_y, on="boot_idx").with_columns(
+                        (pl.col("risk_x") - pl.col("risk_y")).alias("RD")
+                    )
 
-                n_valid_rr = len(valid_rr)
+                    risk_x_val = float(risk_by_level[tx_x]["pred"]["pred"][0])
+                    risk_y_val = float(risk_by_level[tx_y]["pred"]["pred"][0])
+                    rd_point = risk_x_val - risk_y_val
+                    rr_point = (
+                        risk_x_val / risk_y_val if risk_y_val != 0 else float("inf")
+                    )
 
-                if self.bootstrap_CI_method == "percentile":
-                    rd_lci = float(paired["RD"].quantile(alpha / 2))
-                    rd_uci = float(paired["RD"].quantile(1 - alpha / 2))
-                    if n_valid_rr >= 2:
-                        rr_lci = float(valid_rr["RR"].quantile(alpha / 2))
-                        rr_uci = float(valid_rr["RR"].quantile(1 - alpha / 2))
+                    # Filter degenerate RR bootstrap values (risk_y == 0 or negative)
+                    valid_rr = paired.filter(
+                        (pl.col("risk_y") > 0) & (pl.col("risk_x") >= 0)
+                    ).with_columns((pl.col("risk_x") / pl.col("risk_y")).alias("RR"))
+
+                    n_valid_rr = len(valid_rr)
+
+                    if self.bootstrap_CI_method == "percentile":
+                        rd_lci = float(paired["RD"].quantile(alpha / 2))
+                        rd_uci = float(paired["RD"].quantile(1 - alpha / 2))
+                        if n_valid_rr >= 2:
+                            rr_lci = float(valid_rr["RR"].quantile(alpha / 2))
+                            rr_uci = float(valid_rr["RR"].quantile(1 - alpha / 2))
+                        else:
+                            rr_lci = float("nan")
+                            rr_uci = float("nan")
                     else:
-                        rr_lci = float("nan")
-                        rr_uci = float("nan")
+                        rd_se = float(paired["RD"].std())
+                        rd_lci = rd_point - z * rd_se
+                        rd_uci = rd_point + z * rd_se
+                        if n_valid_rr >= 2 and rr_point > 0:
+                            log_rr_se = float(valid_rr["RR"].log().std())
+                            rr_lci = math.exp(math.log(rr_point) - z * log_rr_se)
+                            rr_uci = math.exp(math.log(rr_point) + z * log_rr_se)
+                        else:
+                            rr_lci = float("nan")
+                            rr_uci = float("nan")
+
+                    rd_comp = pl.DataFrame(
+                        {
+                            "Followup": [followup_t],
+                            "A_x": [tx_x],
+                            "A_y": [tx_y],
+                            "Risk Difference": [rd_point],
+                            "RD 95% LCI": [rd_lci],
+                            "RD 95% UCI": [rd_uci],
+                        }
+                    )
+                    rr_comp = pl.DataFrame(
+                        {
+                            "Followup": [followup_t],
+                            "A_x": [tx_x],
+                            "A_y": [tx_y],
+                            "Risk Ratio": [rr_point],
+                            "RR 95% LCI": [rr_lci],
+                            "RR 95% UCI": [rr_uci],
+                        }
+                    )
                 else:
-                    rd_se = float(paired["RD"].std())
-                    rd_lci = rd_point - z * rd_se
-                    rd_uci = rd_point + z * rd_se
-                    if n_valid_rr >= 2 and rr_point > 0:
-                        log_rr_se = float(valid_rr["RR"].log().std())
-                        rr_lci = math.exp(math.log(rr_point) - z * log_rr_se)
-                        rr_uci = math.exp(math.log(rr_point) + z * log_rr_se)
-                    else:
-                        rr_lci = float("nan")
-                        rr_uci = float("nan")
+                    # Fall back to independent delta method
+                    risk_x = risk_by_level[tx_x]["pred"].rename({"pred": "risk_x"})
+                    risk_y = risk_by_level[tx_y]["pred"].rename({"pred": "risk_y"})
 
-                rd_comp = pl.DataFrame(
-                    {
-                        "A_x": [tx_x],
-                        "A_y": [tx_y],
-                        "Risk Difference": [rd_point],
-                        "RD 95% LCI": [rd_lci],
-                        "RD 95% UCI": [rd_uci],
-                    }
-                )
-                rr_comp = pl.DataFrame(
-                    {
-                        "A_x": [tx_x],
-                        "A_y": [tx_y],
-                        "Risk Ratio": [rr_point],
-                        "RR 95% LCI": [rr_lci],
-                        "RR 95% UCI": [rr_uci],
-                    }
-                )
-            else:
-                # Fall back to independent delta method
-                risk_x = risk_by_level[tx_x]["pred"].rename({"pred": "risk_x"})
-                risk_y = risk_by_level[tx_y]["pred"].rename({"pred": "risk_y"})
-
-                if group_cols:
-                    comp = risk_x.join(risk_y, on=group_cols, how="left")
-                else:
-                    comp = risk_x.join(risk_y, how="cross")
-
-                comp = comp.with_columns(
-                    [pl.lit(tx_x).alias("A_x"), pl.lit(tx_y).alias("A_y")]
-                )
-
-                if has_bootstrap:
-                    se_x = risk_by_level[tx_x]["SE"].rename({"SE": "se_x"})
-                    se_y = risk_by_level[tx_y]["SE"].rename({"SE": "se_y"})
                     if group_cols:
-                        comp = comp.join(se_x, on=group_cols, how="left")
-                        comp = comp.join(se_y, on=group_cols, how="left")
+                        comp = risk_x.join(risk_y, on=group_cols, how="left")
                     else:
-                        comp = comp.join(se_x, how="cross")
-                        comp = comp.join(se_y, how="cross")
+                        comp = risk_x.join(risk_y, how="cross")
 
-                rd_comp, rr_comp = _compute_rd_rr(comp, has_bootstrap, z, group_cols)
+                    comp = comp.with_columns(
+                        [pl.lit(tx_x).alias("A_x"), pl.lit(tx_y).alias("A_y")]
+                    )
 
-            rd_comparisons.append(rd_comp)
-            rr_comparisons.append(rr_comp)
+                    if has_bootstrap:
+                        se_x = risk_by_level[tx_x]["SE"].rename({"SE": "se_x"})
+                        se_y = risk_by_level[tx_y]["SE"].rename({"SE": "se_y"})
+                        if group_cols:
+                            comp = comp.join(se_x, on=group_cols, how="left")
+                            comp = comp.join(se_y, on=group_cols, how="left")
+                        else:
+                            comp = comp.join(se_x, how="cross")
+                            comp = comp.join(se_y, how="cross")
+
+                    rd_comp, rr_comp = _compute_rd_rr(
+                        comp, has_bootstrap, z, group_cols
+                    )
+                    rd_cols = rd_comp.columns
+                    rr_cols = rr_comp.columns
+                    rd_comp = rd_comp.with_columns(
+                        pl.lit(followup_t).alias("Followup")
+                    ).select(["Followup"] + rd_cols)
+                    rr_comp = rr_comp.with_columns(
+                        pl.lit(followup_t).alias("Followup")
+                    ).select(["Followup"] + rr_cols)
+
+                rd_comparisons.append(rd_comp)
+                rr_comparisons.append(rr_comp)
 
     risk_difference = pl.concat(rd_comparisons) if rd_comparisons else pl.DataFrame()
     risk_ratio = pl.concat(rr_comparisons) if rr_comparisons else pl.DataFrame()

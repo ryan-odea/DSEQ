@@ -50,3 +50,4 @@ autodoc_class_signature = "separated"
 
 html_theme = "piccolo_theme"
 html_static_path = ["_static"]
+html_css_files = ["custom.css"]

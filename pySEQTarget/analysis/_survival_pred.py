@@ -132,8 +132,13 @@ def _calculate_risk(self, data, idx=None, val=None):
     lci = a / 2
     uci = 1 - lci
 
-    # Pre-compute the followup range once (starts at 1, not 0)
-    followup_range = list(range(1, self.followup_max + 1))
+    # Predict the hazard on the full followup grid starting at 0 — the first
+    # interval of every trial, where an event can already occur. Curve labels
+    # are shifted +1 after the cumulative product (below) so that followup=k
+    # means "survival/risk after k elapsed intervals", giving rows
+    # 0..followup_max+1. This matches SEQTaRget (R); starting the grid at 1
+    # silently dropped the first interval's hazard and ended one step short.
+    followup_range = list(range(0, self.followup_max + 1))
 
     SDT = (
         data.with_columns(
@@ -223,6 +228,7 @@ def _calculate_risk(self, data, idx=None, val=None):
                 TxDT.group_by("followup")
                 .agg([pl.col(col).mean() for col in surv_names + inc_names])
                 .sort("followup")
+                .with_columns(pl.col("followup") + 1)
             )
             main_col = "surv"
             boot_cols = [col for col in surv_names if col != "surv"]
@@ -242,6 +248,7 @@ def _calculate_risk(self, data, idx=None, val=None):
                 .agg([pl.col(col).mean() for col in outcome_names])
                 .sort("followup")
                 .with_columns([(1 - pl.col(col)).alias(col) for col in outcome_names])
+                .with_columns(pl.col("followup") + 1)
             )
             main_col = "pred_outcome"
             boot_cols = [col for col in outcome_names if col != "pred_outcome"]
