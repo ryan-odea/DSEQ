@@ -1,3 +1,5 @@
+import types
+
 import numpy as np
 import pandas as pd
 import patsy
@@ -18,36 +20,21 @@ class _GlumFit:
     just like statsmodels keeps model.exog, so memory use is comparable.
     """
 
-    class _Data:
-        pass
-
     def __init__(self, glum_model, design_info, feature_names, X_design, sample_weight):
         self._glum = glum_model
         self._design_info = design_info
         self._X_design = X_design  # includes the intercept column
         self._sample_weight = sample_weight
 
-        # .model.data.design_info — used by _survival_pred and _fix_categories
-        _d = self._Data()
-        _d.design_info = design_info
-        self._data = _d
+        self.model = types.SimpleNamespace(
+            exog_names=feature_names,
+            data=types.SimpleNamespace(design_info=design_info),
+        )
+        self.exog_names = feature_names
 
         # statsmodels convention: intercept first
         all_coefs = np.concatenate([[glum_model.intercept_], glum_model.coef_])
         self.params = pd.Series(all_coefs, index=feature_names)
-
-    @property
-    def model(self):
-        # makes .model.exog_names and .model.data.design_info work
-        return self
-
-    @property
-    def data(self):
-        return self._data
-
-    @property
-    def exog_names(self):
-        return list(self.params.index)
 
     def predict(self, data, transform=True):
         if transform:
