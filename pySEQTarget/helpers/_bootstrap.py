@@ -118,12 +118,14 @@ def bootstrap_loop(method):
                         for i in range(nboot)
                     }
                     skipped = 0
+                    boot_sample_idx = []
                     for j in tqdm(
                         as_completed(futures), total=nboot, desc="Bootstrapping..."
                     ):
                         boot_idx = futures[j]
                         try:
                             results.append(j.result())
+                            boot_sample_idx.append(boot_idx)
                         except np.linalg.LinAlgError as e:
                             skipped += 1
                             warnings.warn(
@@ -144,6 +146,7 @@ def bootstrap_loop(method):
                     original_DT_ref = original_DT
 
                 skipped = 0
+                boot_sample_idx = []
                 for i in tqdm(range(nboot), desc="Bootstrapping..."):
                     self._current_boot_idx = i + 1
                     if seed is not None:
@@ -156,6 +159,7 @@ def bootstrap_loop(method):
                     try:
                         boot_fit = method(self, *args, **kwargs)
                         results.append(boot_fit)
+                        boot_sample_idx.append(i)
                     except np.linalg.LinAlgError as e:
                         skipped += 1
                         warnings.warn(
@@ -167,6 +171,11 @@ def bootstrap_loop(method):
 
                 self.DT = self._offloader.load_dataframe(original_DT_ref)
 
+            # Maps each fitted bootstrap model (results[1:]) back to its
+            # original _boot_samples index. Skipped replicates leave gaps, so
+            # downstream consumers (e.g. hazard) must use this to pair a
+            # resample with its model rather than assuming a 1:1 ordering.
+            self._boot_sample_idx = boot_sample_idx
             self.bootstrap_nboot = len(results) - 1
             if skipped > 0:
                 warnings.warn(

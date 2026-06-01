@@ -125,6 +125,15 @@ def _outcome_fit(
 
     full_formula = f"{outcome} ~ {formula}"
 
+    if getattr(self, "glm_package", "statsmodels") == "glum":
+        from ..helpers._glum_fit import _fit_glum
+
+        return _fit_glum(
+            full_formula,
+            df_pd,
+            var_weights=df_pd[weight_col] if weighted else None,
+        )
+
     glm_kwargs = {
         "formula": full_formula,
         "data": df_pd,

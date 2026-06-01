@@ -6,6 +6,15 @@ def _diagnostics(self):
     nonunique_out = _outcome_diag(self, unique=False)
     out = {"unique_outcomes": unique_out, "nonunique_outcomes": nonunique_out}
 
+    unique_fu = _followup_diag(self, unique=True)
+    nonunique_fu = _followup_diag(self, unique=False)
+    out.update({"unique_followup": unique_fu, "nonunique_followup": nonunique_fu})
+
+    if self.compevent_colname is not None:
+        unique_ce = _compevent_diag(self, unique=True)
+        nonunique_ce = _compevent_diag(self, unique=False)
+        out.update({"unique_compevent": unique_ce, "nonunique_compevent": nonunique_ce})
+
     if self.method == "censoring":
         unique_switch = _switch_diag(self, unique=True)
         nonunique_switch = _switch_diag(self, unique=False)
@@ -28,6 +37,45 @@ def _outcome_diag(self, unique):
     out = data.group_by([self.treatment_col, self.outcome_col]).len()
 
     return out
+
+
+def _followup_diag(self, unique):
+    """
+    Follow-up per treatment arm, grouped by the baseline treatment value, over
+    the rows the outcome model is fit on (under method="censoring" the switched
+    rows are dropped, matching _outcome_fit). ``unique`` counts distinct subjects
+    contributing follow-up to the arm; otherwise counts follow-up intervals
+    (rows / person-time), so non-unique outcome counts divided by these give
+    per-arm event rates. A subject appearing in both arms is counted in each.
+    """
+    tx_bas = f"{self.treatment_col}{self.indicator_baseline}"
+    data = self.DT
+    if self.method == "censoring":
+        data = data.filter(pl.col("switch") != 1)
+
+    if unique:
+        out = data.group_by(tx_bas).agg(pl.col(self.id_col).n_unique().alias("len"))
+    else:
+        out = data.group_by(tx_bas).len()
+
+    return out.sort(tx_bas)
+
+
+def _compevent_diag(self, unique):
+    """
+    Competing-event counts per treatment arm. Counts rows where the configured
+    compevent column is 1, grouped by the baseline treatment value. ``unique``
+    counts distinct subjects who experience the competing event in each arm;
+    otherwise counts the intervals (rows). A subject appearing with a competing
+    event in both arms is counted in each.
+    """
+    tx_bas = f"{self.treatment_col}{self.indicator_baseline}"
+    data = self.DT.filter(pl.col(self.compevent_colname) == 1)
+    if unique:
+        out = data.group_by(tx_bas).agg(pl.col(self.id_col).n_unique().alias("len"))
+    else:
+        out = data.group_by(tx_bas).len()
+    return out.sort(tx_bas)
 
 
 def _switch_diag(self, unique):

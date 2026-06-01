@@ -102,6 +102,10 @@ class SEQoutput:
                 "risk_difference",
                 "unique_outcomes",
                 "nonunique_outcomes",
+                "unique_followup",
+                "nonunique_followup",
+                "unique_compevent",
+                "nonunique_compevent",
                 "unique_switches",
                 "nonunique_switches",
             ]
@@ -112,7 +116,9 @@ class SEQoutput:
 
         :param type: Data which you would like to access, ['km_data', 'hazard',
             'risk_ratio', 'risk_difference', 'unique_outcomes',
-            'nonunique_outcomes', 'unique_switches', 'nonunique_switches']
+            'nonunique_outcomes', 'unique_followup', 'nonunique_followup',
+            'unique_compevent', 'nonunique_compevent',
+            'unique_switches', 'nonunique_switches']
         :type type: str
         """
         match type:
@@ -126,6 +132,14 @@ class SEQoutput:
                 data = self.diagnostic_tables["unique_outcomes"]
             case "nonunique_outcomes":
                 data = self.diagnostic_tables["nonunique_outcomes"]
+            case "unique_followup":
+                data = self.diagnostic_tables["unique_followup"]
+            case "nonunique_followup":
+                data = self.diagnostic_tables["nonunique_followup"]
+            case "unique_compevent":
+                data = self.diagnostic_tables.get("unique_compevent")
+            case "nonunique_compevent":
+                data = self.diagnostic_tables.get("nonunique_compevent")
             case "unique_switches":
                 if self.diagnostic_tables.has_key("unique_switches"):
                     data = self.diagnostic_tables["unique_switches"]

@@ -35,10 +35,17 @@ def _calculate_hazard_single(self, data, idx=None, val=None):
     if self.bootstrap_nboot > 0:
         boot_log_hrs = []
 
-        for boot_idx in range(len(self._boot_samples)):
+        # outcome_model[model_pos + 1] was fit on _boot_samples[sample_idx];
+        # skipped replicates make this mapping non-identity, so iterate it
+        # explicitly rather than assuming model index == sample index.
+        boot_sample_idx = getattr(self, "_boot_sample_idx", None)
+        if boot_sample_idx is None:
+            boot_sample_idx = list(range(len(self._boot_samples)))
+
+        for model_pos, sample_idx in enumerate(boot_sample_idx):
             if self.seed is not None:
-                self._rng = np.random.RandomState(self.seed + boot_idx + 1)
-            id_counts = self._boot_samples[boot_idx]
+                self._rng = np.random.RandomState(self.seed + sample_idx + 1)
+            id_counts = self._boot_samples[sample_idx]
 
             counts = pl.DataFrame(
                 {
@@ -55,7 +62,9 @@ def _calculate_hazard_single(self, data, idx=None, val=None):
                 .collect()
             )
 
-            boot_log_hr = _hazard_handler(self, boot_data, idx, boot_idx + 1, self._rng)
+            boot_log_hr = _hazard_handler(
+                self, boot_data, idx, model_pos + 1, self._rng
+            )
             if boot_log_hr is not None and not np.isnan(boot_log_hr):
                 boot_log_hrs.append(boot_log_hr)
 
@@ -180,6 +189,7 @@ def _hazard_handler(self, data, idx, boot_idx, rng):
         sim_data = sim_data.with_columns([pl.col("outcome").alias("event")])
 
     sim_data_pd = sim_data.to_pandas()
+    tx_bas = f"{self.treatment_col}{self.indicator_baseline}"
 
     try:
         # COXPHFITTER CURRENTLY HAS DEPRECATED datetime.datetime.utcnow()
@@ -187,28 +197,39 @@ def _hazard_handler(self, data, idx, boot_idx, rng):
         if ce_model is not None:
             cox_data = sim_data_pd[sim_data_pd["event"].isin([0, 1])].copy()
             cox_data["event_binary"] = (cox_data["event"] == 1).astype(int)
-
-            cph = CoxPHFitter()
-            cph.fit(
-                cox_data,
-                duration_col="followup",
-                event_col="event_binary",
-                formula=f"`{self.treatment_col}{self.indicator_baseline}`",
-            )
-        else:
-            cph = CoxPHFitter()
-            cph.fit(
-                sim_data_pd,
-                duration_col="followup",
-                event_col="event",
-                formula=f"`{self.treatment_col}{self.indicator_baseline}`",
-            )
-
-        log_hr = cph.params_.values[0]
-        return log_hr
+            return _cox_log_hr(self, cox_data, "followup", "event_binary", tx_bas)
+        return _cox_log_hr(self, sim_data_pd, "followup", "event", tx_bas)
     except Exception as e:
         print(f"Cox model fitting failed: {e}")
         return None
+
+
+def _cox_log_hr(self, data_pd, duration_col, event_col, covariate_col):
+    """
+    Fit a univariate Cox model (single covariate = baseline treatment) and
+    return the log hazard ratio, dispatching on self.cox_package. scikit-survival
+    uses Efron tie handling to match lifelines, which matters here because
+    integer follow-up produces many tied event times.
+    """
+    if getattr(self, "cox_package", "lifelines") == "scikit-survival":
+        from sksurv.linear_model import CoxPHSurvivalAnalysis
+
+        y = np.empty(len(data_pd), dtype=[("event", bool), ("time", "float64")])
+        y["event"] = data_pd[event_col].to_numpy().astype(bool)
+        y["time"] = data_pd[duration_col].to_numpy().astype(float)
+        X = data_pd[[covariate_col]].to_numpy().astype(float)
+        cox = CoxPHSurvivalAnalysis(ties="efron")
+        cox.fit(X, y)
+        return float(cox.coef_[0])
+
+    cph = CoxPHFitter()
+    cph.fit(
+        data_pd,
+        duration_col=duration_col,
+        event_col=event_col,
+        formula=f"`{covariate_col}`",
+    )
+    return cph.params_.values[0]
 
 
 def _create_hazard_output(hr, lci, uci, val, self):
