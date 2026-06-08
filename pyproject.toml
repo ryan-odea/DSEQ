@@ -55,6 +55,10 @@ output = [
 gpu = [
     "jax"
 ]
+dev = [
+    "pySEQTarget[output,gpu]",
+    "pytest",
+]
 
 [project.urls]
 Homepage = "https://github.com/CausalInference/pySEQTarget"
