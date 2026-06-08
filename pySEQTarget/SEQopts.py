@@ -39,6 +39,7 @@ class SEQopts:
     :param expand_only: If True, ``SEQuential.expand()`` returns the expanded dataset and skips weighting,
         modelling, and survival steps
     :type expand_only: bool
+    :param glm_package: Backend for fitting logistic (outcome/competing-event) models ["statsmodels", "glum", or "jax"], default "statsmodels".
     :param followup_class: Boolean to force followup values to be treated as classes
     :type followup_class: bool
     :param followup_include: Boolean to force regular followup values into model covariates
