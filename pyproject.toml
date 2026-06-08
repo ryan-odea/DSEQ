@@ -53,7 +53,8 @@ output = [
     "tabulate"
 ]
 gpu = [
-    "jax"
+    "jax[cuda12]; sys_platform == 'linux'",
+    "jax; sys_platform != 'linux'",
 ]
 dev = [
     "pySEQTarget[output,gpu]",
