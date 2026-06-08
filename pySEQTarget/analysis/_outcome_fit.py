@@ -129,10 +129,12 @@ def _outcome_fit(
     match getattr(self, "glm_package", "statsmodels"):
         case "glum":
             from ..helpers._glum_fit import _fit_glum
+
             return _fit_glum(full_formula, df_pd, var_weights=var_weights)
 
         case "jax":
             from ..helpers._jax_fit import _fit_jax
+
             return _fit_jax(
                 full_formula,
                 df_pd,

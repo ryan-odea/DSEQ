@@ -40,7 +40,7 @@ class _JaxFit:
             max_iter=max_iter,
             n_classes=self._n_classes,
         )
-        
+
         jax_model.mean_ = X_arr.mean(axis=0)
         jax_model.std_ = X_arr.std(axis=0) + jax_model.eps  # guard constants
         self._jax = jax_model
@@ -93,7 +93,7 @@ class _JaxFit:
         coef = sp_values[1:]
         if coef.shape[0] != n_features:
             return None
-        
+
         W = np.zeros((n_features, 1))
         b = np.zeros(1)
         mean = np.asarray(self._jax.mean_)
